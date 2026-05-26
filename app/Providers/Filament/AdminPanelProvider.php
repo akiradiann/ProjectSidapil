@@ -18,6 +18,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -28,17 +30,20 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('') // Akses langsung dari root URL
             ->login()
-            ->brandName('SIDAPIL')
-            ->brandLogo(null)
+            ->brandLogo(fn () => view('filament.brand-logo'))
             ->favicon(asset('favicon.ico'))
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => '#211c56',
                 'danger' => Color::Rose,
                 'gray' => Color::Slate,
                 'info' => Color::Sky,
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
             ])
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => Blade::render("@vite('resources/css/app.css')"),
+            )
             ->font('Plus Jakarta Sans')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

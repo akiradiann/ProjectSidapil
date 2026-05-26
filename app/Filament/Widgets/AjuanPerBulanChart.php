@@ -61,8 +61,8 @@ class AjuanPerBulanChart extends ChartWidget
                 [
                     'label' => 'Total Ajuan',
                     'data' => $data,
-                    'borderColor' => '#3b82f6',
-                    'backgroundColor' => 'rgba(59, 130, 246, 0.1)',
+                    'borderColor' => '#9185be',
+                    'backgroundColor' => 'rgba(145, 133, 190, 0.1)',
                     'fill' => true,
                     'tension' => 0.4, // Smooth line
                 ],
