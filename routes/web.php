@@ -13,6 +13,19 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
 
+// Debug logs endpoint to view Laravel errors
+Route::get('/debug-logs', function () {
+    $logPath = storage_path('logs/laravel.log');
+    if (!file_exists($logPath)) {
+        return 'No log file found at ' . $logPath;
+    }
+    
+    $lines = file($logPath);
+    $lastLines = array_slice($lines, -100);
+    
+    return response(implode('', $lastLines), 200, ['Content-Type' => 'text/plain']);
+});
+
 // Download file routes for Filament resources
 Route::middleware([
     'web',
