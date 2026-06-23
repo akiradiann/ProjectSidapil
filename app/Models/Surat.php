@@ -71,7 +71,9 @@ class Surat extends Model
                     $surat->wasChanged('status_ajuan_id') ||
                     $surat->wasChanged('file_produk') ||
                     $surat->wasChanged('catatan') ||
-                    $surat->wasChanged('produk_id')
+                    $surat->wasChanged('produk_id') ||
+                    $surat->wasChanged('no_hp') ||
+                    $surat->wasChanged('nama_pemohon')
                 )
             ) {
                 $updateData = [
@@ -79,6 +81,8 @@ class Surat extends Model
                     'file_produk' => $surat->file_produk,
                     'catatan' => $surat->catatan,
                     'jenis_produk_id' => $surat->produk_id,
+                    'no_hp' => $surat->no_hp,
+                    'nama_pemohon' => $surat->nama_pemohon,
                 ];
 
                 if (auth()->check() && auth()->user()->isOperator()) {

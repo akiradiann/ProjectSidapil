@@ -12,6 +12,7 @@ class KtpEl extends Model
         'nomor',
         'nik',
         'nama',
+        'no_hp',
         'layanan_id',
         'status_pelapor_id',
         'produk_id',
@@ -68,13 +69,17 @@ class KtpEl extends Model
                 $ktp->serviceRequest && (
                     $ktp->wasChanged('status_ajuan_id') ||
                     $ktp->wasChanged('catatan') ||
-                    $ktp->wasChanged('produk_id')
+                    $ktp->wasChanged('produk_id') ||
+                    $ktp->wasChanged('no_hp') ||
+                    $ktp->wasChanged('nama')
                 )
             ) {
                 $updateData = [
                     'status_ajuan_id' => $ktp->status_ajuan_id,
                     'catatan' => $ktp->catatan,
                     'jenis_produk_id' => $ktp->produk_id,
+                    'no_hp' => $ktp->no_hp,
+                    'nama_pemohon' => $ktp->nama,
                 ];
 
                 // Set operator_id if user is operator

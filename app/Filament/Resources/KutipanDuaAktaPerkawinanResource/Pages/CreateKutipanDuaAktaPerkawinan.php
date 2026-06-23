@@ -32,6 +32,8 @@ class CreateKutipanDuaAktaPerkawinan extends CreateRecord
             'fo_id' => auth()->id(),
             'file_produk' => $kutipan->file_produk ?? null,
             'catatan' => $kutipan->catatan ?? null,
+            'no_hp' => $kutipan->no_hp,
+            'nama_pemohon' => $kutipan->nama_pelapor,
         ]);
 
         // Link kutipan to service request

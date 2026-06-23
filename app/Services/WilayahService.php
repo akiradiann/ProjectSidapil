@@ -107,15 +107,24 @@ class WilayahService
      */
     public static function getDistrictOptions(string $regencyCode = '3310'): array
     {
-        $districts = self::getDistricts($regencyCode);
         $options = [];
-        
+        $districts = self::getDistricts($regencyCode);
         foreach ($districts as $district) {
             if (isset($district['id']) && isset($district['name'])) {
                 $options[$district['id']] = $district['name'];
             }
         }
-        
+        // Fallback hardcoded districts if API fails or returns empty
+        if (empty($options)) {
+            $options = [
+                '3310010' => 'PRAMBANAN',
+                '3310020' => 'GANTIWARNO',
+                '3310030' => 'WEDI',
+                '3310040' => 'BAYAT',
+                '3310050' => 'CAWAS',
+                '3310060' => 'TRUCUK',
+            ];
+        }
         return $options;
     }
 

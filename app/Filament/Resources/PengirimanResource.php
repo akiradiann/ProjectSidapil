@@ -73,6 +73,17 @@ class PengirimanResource extends Resource
 
         return $form
             ->schema([
+                Forms\Components\Section::make('Informasi Kontak Pemohon')
+                    ->schema([
+                        Forms\Components\Placeholder::make('nama_pemohon')
+                            ->label('Nama Pemohon')
+                            ->content(fn($record) => $record->nama_pemohon ?? '-'),
+                        Forms\Components\Placeholder::make('no_hp')
+                            ->label('No. HP / WhatsApp')
+                            ->content(fn($record) => $record->no_hp ?? '-'),
+                    ])
+                    ->columns(2),
+
                 // Detail Akta Kelahiran (jika ada)
                 Forms\Components\Section::make('Detail Layanan - Akta Kelahiran')
                     ->schema([
@@ -665,132 +676,15 @@ class PengirimanResource extends Resource
                     ->badge()
                     ->color('info')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('nama')
-                    ->label('Nama')
-                    ->getStateUsing(function ($record) {
-                        // Get nama from akta kelahiran if exists
-                        if ($record->aktaKelahiran) {
-                            return $record->aktaKelahiran->nama;
-                        }
-                        // Get nama from akta kematian if exists
-                        if ($record->aktaKematian) {
-                            return $record->aktaKematian->nama;
-                        }
-                        // Get nama from akta perkawinan if exists
-                        if ($record->aktaPerkawinan) {
-                            return $record->aktaPerkawinan->nama_mempelai_laki . ' & ' . $record->aktaPerkawinan->nama_mempelai_perempuan;
-                        }
-                        // Get nama from akta perceraian if exists
-                        if ($record->aktaPerceraian) {
-                            return $record->aktaPerceraian->nama_suami . ' & ' . $record->aktaPerceraian->nama_istri;
-                        }
-                        // Get nama from kutipan dua akta kelahiran if exists
-                        if ($record->kutipanDuaAktaKelahiran) {
-                            return $record->kutipanDuaAktaKelahiran->nama;
-                        }
-                        // Get nama from kutipan dua akta kematian if exists
-                        if ($record->kutipanDuaAktaKematian) {
-                            return $record->kutipanDuaAktaKematian->nama;
-                        }
-                        // Get nama from kutipan dua akta perkawinan if exists
-                        if ($record->kutipanDuaAktaPerkawinan) {
-                            return $record->kutipanDuaAktaPerkawinan->nama_suami . ' & ' . $record->kutipanDuaAktaPerkawinan->nama_istri;
-                        }
-                        // Get nama from kutipan dua akta perceraian if exists
-                        if ($record->kutipanDuaAktaPerceraian) {
-                            return $record->kutipanDuaAktaPerceraian->nama_suami . ' & ' . $record->kutipanDuaAktaPerceraian->nama_istri;
-                        }
-                        // Get nama from catatan pinggir if exists
-                        if ($record->catatanPinggir) {
-                            return $record->catatanPinggir->nama;
-                        }
-                        // Get nama from Surat if exists
-                        if ($record->surat) {
-                            return $record->surat->nama_pemohon;
-                        }
-                        // For other services, might need to add nama field later
-                        return '-';
-                    })
-                    ->searchable(query: function (Builder $query, string $search) {
-                        return $query->where(function ($q) use ($search) {
-                            $q->whereHas('aktaKelahiran', fn($sub) => $sub->where('nama', 'like', "%{$search}%"))
-                                ->orWhereHas('aktaKematian', fn($sub) => $sub->where('nama', 'like', "%{$search}%"))
-                                ->orWhereHas('aktaPerkawinan', fn($sub) => $sub->where('nama_mempelai_laki', 'like', "%{$search}%")->orWhere('nama_mempelai_perempuan', 'like', "%{$search}%"))
-                                ->orWhereHas('aktaPerceraian', fn($sub) => $sub->where('nama_suami', 'like', "%{$search}%")->orWhere('nama_istri', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaKelahiran', fn($sub) => $sub->where('nama', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaKematian', fn($sub) => $sub->where('nama', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaPerkawinan', fn($sub) => $sub->where('nama_suami', 'like', "%{$search}%")->orWhere('nama_istri', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaPerceraian', fn($sub) => $sub->where('nama_suami', 'like', "%{$search}%")->orWhere('nama_istri', 'like', "%{$search}%"))
-                                ->orWhereHas('catatanPinggir', fn($sub) => $sub->where('nama_sebelum', 'like', "%{$search}%")
-                                    ->orWhere('nama_sesudah', 'like', "%{$search}%")
-                                    ->orWhere('nama_anak_pgsh', 'like', "%{$search}%")
-                                    ->orWhere('nama_anak_pgn', 'like', "%{$search}%")
-                                    ->orWhere('nama_anak_pgk', 'like', "%{$search}%")
-                                    ->orWhere('nama_pkoi', 'like', "%{$search}%"))
-                                ->orWhereHas('surat', fn($sub) => $sub->where('nama_pemohon', 'like', "%{$search}%")->orWhere('nama', 'like', "%{$search}%"));
-                        });
-                    })
+                Tables\Columns\TextColumn::make('nama_pemohon')
+                    ->label('Nama Pemohon')
+                    ->searchable()
                     ->sortable()
                     ->weight('medium'),
                 Tables\Columns\TextColumn::make('no_hp')
                     ->label('No. HP')
-                    ->getStateUsing(function ($record) {
-                        // Get no_hp from akta kelahiran if exists
-                        if ($record->aktaKelahiran) {
-                            return $record->aktaKelahiran->no_hp ?? '-';
-                        }
-                        // Get no_hp from akta kematian if exists
-                        if ($record->aktaKematian) {
-                            return $record->aktaKematian->no_hp ?? '-';
-                        }
-                        // Get no_hp from akta perkawinan if exists
-                        if ($record->aktaPerkawinan) {
-                            return $record->aktaPerkawinan->no_hp ?? '-';
-                        }
-                        // Get no_hp from akta perceraian if exists
-                        if ($record->aktaPerceraian) {
-                            return $record->aktaPerceraian->no_hp ?? '-';
-                        }
-                        // Get no_hp from kutipan dua akta kelahiran if exists
-                        if ($record->kutipanDuaAktaKelahiran) {
-                            return $record->kutipanDuaAktaKelahiran->no_hp ?? '-';
-                        }
-                        // Get no_hp from kutipan dua akta kematian if exists
-                        if ($record->kutipanDuaAktaKematian) {
-                            return $record->kutipanDuaAktaKematian->no_hp ?? '-';
-                        }
-                        // Get no_hp from kutipan dua akta perkawinan if exists
-                        if ($record->kutipanDuaAktaPerkawinan) {
-                            return $record->kutipanDuaAktaPerkawinan->no_hp ?? '-';
-                        }
-                        // Get no_hp from kutipan dua akta perceraian if exists
-                        if ($record->kutipanDuaAktaPerceraian) {
-                            return $record->kutipanDuaAktaPerceraian->no_hp ?? '-';
-                        }
-                        // Get no_hp from catatan pinggir if exists
-                        if ($record->catatanPinggir) {
-                            return $record->catatanPinggir->no_hp ?? '-';
-                        }
-                        // Get no_hp from Surat if exists
-                        if ($record->surat) {
-                            return $record->surat->no_hp ?? '-';
-                        }
-                        return '-';
-                    })
-                    ->searchable(query: function (Builder $query, string $search) {
-                        return $query->where(function ($q) use ($search) {
-                            $q->whereHas('aktaKelahiran', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('aktaKematian', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('aktaPerkawinan', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('aktaPerceraian', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaKelahiran', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaKematian', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaPerkawinan', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('kutipanDuaAktaPerceraian', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('catatanPinggir', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"))
-                                ->orWhereHas('surat', fn($sub) => $sub->where('no_hp', 'like', "%{$search}%"));
-                        });
-                    })
+                    ->searchable()
+                    ->sortable()
                     ->copyable(),
                 Tables\Columns\TextColumn::make('statusAjuan.nama_status')
                     ->label('Status')

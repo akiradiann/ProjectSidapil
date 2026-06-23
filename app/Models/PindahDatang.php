@@ -15,6 +15,7 @@ class PindahDatang extends Model
         'nik',
         'nama_kepala_keluarga',
         'nama_pemohon',
+        'no_hp',
         'layanan_id',
         'status_pelapor_id',
         'produk_id',
@@ -83,13 +84,17 @@ class PindahDatang extends Model
                 $pd->serviceRequest && (
                     $pd->wasChanged('status_ajuan_id') ||
                     $pd->wasChanged('catatan') ||
-                    $pd->wasChanged('produk_id')
+                    $pd->wasChanged('produk_id') ||
+                    $pd->wasChanged('no_hp') ||
+                    $pd->wasChanged('nama_pemohon')
                 )
             ) {
                 $updateData = [
                     'status_ajuan_id' => $pd->status_ajuan_id,
                     'catatan' => $pd->catatan,
                     'jenis_produk_id' => $pd->produk_id,
+                    'no_hp' => $pd->no_hp,
+                    'nama_pemohon' => $pd->nama_pemohon,
                 ];
 
                 // Set operator_id if user is operator

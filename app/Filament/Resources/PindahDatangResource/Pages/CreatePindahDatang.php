@@ -31,6 +31,8 @@ class CreatePindahDatang extends CreateRecord
             'status_ajuan_id' => $pd->status_ajuan_id,
             'fo_id' => auth()->id(),
             'catatan' => $pd->catatan ?? null,
+            'no_hp' => $pd->no_hp,
+            'nama_pemohon' => $pd->nama_pemohon,
         ]);
 
         // Link pindah datang to service request

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nomor')->nullable();
             $table->string('kode', 50);
             $table->string('no_akta'); // Nomor akta sebelumnya
-            $table->string('nama suami');
+            $table->string('nama_suami');
             $table->string('nama_istri');
             $table->text('alasan')->nullable();
             $table->string('nama_pelapor');

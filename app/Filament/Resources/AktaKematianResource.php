@@ -134,20 +134,7 @@ class AktaKematianResource extends Resource
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
                         Forms\Components\Select::make('kecamatan_id')
                             ->label('Kecamatan')
-                            ->options(function (Forms\Get $get, $record) {
-                                $options = WilayahService::getDistrictOptions('3310');
-
-                                // Fix UX: Inject current form value into options
-                                $currentVal = $get('kecamatan_id');
-                                if ($currentVal && !array_key_exists($currentVal, $options)) {
-                                    $options[$currentVal] = $currentVal;
-                                }
-
-                                if ($record && $record->kecamatan_id && !array_key_exists($record->kecamatan_id, $options)) {
-                                    $options[$record->kecamatan_id] = $record->kecamatan_id;
-                                }
-                                return $options;
-                            })
+                            ->options(WilayahService::getDistrictOptions('3310'))
                             ->required()
                             ->searchable()
                             ->reactive()

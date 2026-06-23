@@ -133,6 +133,15 @@ class ServiceRequestResource extends Resource
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
                             ->visible(fn($get) => $get('kategori_layanan_id')),
+                        Forms\Components\TextInput::make('nama_pemohon')
+                            ->label('Nama Pemohon')
+                            ->maxLength(255)
+                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
+                        Forms\Components\TextInput::make('no_hp')
+                            ->label('No. HP / WhatsApp')
+                            ->tel()
+                            ->maxLength(20)
+                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
                     ])
                     ->columns(2),
 
@@ -257,6 +266,16 @@ class ServiceRequestResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color('info'),
+                Tables\Columns\TextColumn::make('nama_pemohon')
+                    ->label('Nama Pemohon')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('medium'),
+                Tables\Columns\TextColumn::make('no_hp')
+                    ->label('No. HP')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
                 Tables\Columns\TextColumn::make('jenisLayanan.nama_layanan')
                     ->label('Jenis Layanan')
                     ->searchable()

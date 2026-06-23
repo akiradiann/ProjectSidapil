@@ -129,6 +129,11 @@ class KartuKeluargaResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
+                        Forms\Components\TextInput::make('no_hp')
+                            ->label('No. HP / WhatsApp')
+                            ->tel()
+                            ->maxLength(20)
+                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
                     ])
                     ->columns(2),
 

@@ -32,6 +32,8 @@ class CreateSurat extends CreateRecord
             'fo_id' => auth()->id(),
             'file_produk' => $surat->file_produk ?? null,
             'catatan' => $surat->catatan ?? null,
+            'no_hp' => $surat->no_hp,
+            'nama_pemohon' => $surat->nama_pemohon,
         ]);
 
         // Link surat to service request

@@ -12,6 +12,7 @@ class Kia extends Model
         'nomor',
         'nik',
         'nama',
+        'no_hp',
         'layanan_id',
         'status_pelapor_id',
         'produk_id',
@@ -68,13 +69,17 @@ class Kia extends Model
                 $kia->serviceRequest && (
                     $kia->wasChanged('status_ajuan_id') ||
                     $kia->wasChanged('catatan') ||
-                    $kia->wasChanged('produk_id')
+                    $kia->wasChanged('produk_id') ||
+                    $kia->wasChanged('no_hp') ||
+                    $kia->wasChanged('nama')
                 )
             ) {
                 $updateData = [
                     'status_ajuan_id' => $kia->status_ajuan_id,
                     'catatan' => $kia->catatan,
                     'jenis_produk_id' => $kia->produk_id,
+                    'no_hp' => $kia->no_hp,
+                    'nama_pemohon' => $kia->nama,
                 ];
 
                 // Set operator_id if user is operator

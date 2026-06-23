@@ -97,7 +97,9 @@ class AktaPerceraian extends Model
                     $akta->wasChanged('status_ajuan_id') ||
                     $akta->wasChanged('file_produk') ||
                     $akta->wasChanged('catatan') ||
-                    $akta->wasChanged('produk_id')
+                    $akta->wasChanged('produk_id') ||
+                    $akta->wasChanged('no_hp') ||
+                    $akta->wasChanged('nama_pelapor')
                 )
             ) {
                 $updateData = [
@@ -105,6 +107,8 @@ class AktaPerceraian extends Model
                     'file_produk' => $akta->file_produk,
                     'catatan' => $akta->catatan,
                     'jenis_produk_id' => $akta->produk_id,
+                    'no_hp' => $akta->no_hp,
+                    'nama_pemohon' => $akta->nama_pelapor,
                 ];
 
                 // Set operator_id if user is operator

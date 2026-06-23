@@ -35,6 +35,8 @@ class CreateCatatanPinggir extends CreateRecord
             'fo_id' => auth()->id(),
             'file_produk' => $catatan->file_produk ?? null,
             'catatan' => $catatan->catatan ?? null,
+            'no_hp' => $catatan->no_hp,
+            'nama_pemohon' => $catatan->nama_pelapor,
         ]);
 
         // Link catatan to service request

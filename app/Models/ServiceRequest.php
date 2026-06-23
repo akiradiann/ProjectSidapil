@@ -22,6 +22,8 @@ class ServiceRequest extends Model
         'operator_id',
         'cs_id',
         'loket_id',
+        'no_hp',
+        'nama_pemohon',
         'file_produk',
         'catatan',
         'catatan_tambahan',
@@ -69,6 +71,20 @@ class ServiceRequest extends Model
             }
         });
 
+        static::created(function ($serviceRequest) {
+            // Log status change on creation
+            if (auth()->check()) {
+                ServiceRequestLog::create([
+                    'service_request_id' => $serviceRequest->id,
+                    'status_ajuan_id' => $serviceRequest->status_ajuan_id,
+                    'user_id' => auth()->id(),
+                    'catatan' => $serviceRequest->catatan,
+                ]);
+            }
+
+            // WhatsApp notification logic has been temporarily removed
+        });
+
         static::updating(function ($serviceRequest) {
             // Track status changes
             if ($serviceRequest->isDirty('status_ajuan_id')) {
@@ -89,13 +105,17 @@ class ServiceRequest extends Model
 
         static::updated(function ($serviceRequest) {
             // Log status change after update
-            if ($serviceRequest->wasChanged('status_ajuan_id') && auth()->check()) {
-                ServiceRequestLog::create([
-                    'service_request_id' => $serviceRequest->id,
-                    'status_ajuan_id' => $serviceRequest->status_ajuan_id,
-                    'user_id' => auth()->id(),
-                    'catatan' => $serviceRequest->catatan,
-                ]);
+            if ($serviceRequest->wasChanged('status_ajuan_id')) {
+                if (auth()->check()) {
+                    ServiceRequestLog::create([
+                        'service_request_id' => $serviceRequest->id,
+                        'status_ajuan_id' => $serviceRequest->status_ajuan_id,
+                        'user_id' => auth()->id(),
+                        'catatan' => $serviceRequest->catatan,
+                    ]);
+                }
+
+                // WhatsApp notification logic has been temporarily removed
             }
         });
 

@@ -31,6 +31,8 @@ class CreateKtpEl extends CreateRecord
             'status_ajuan_id' => $ktp->status_ajuan_id,
             'fo_id' => auth()->id(),
             'catatan' => $ktp->catatan ?? null,
+            'no_hp' => $ktp->no_hp,
+            'nama_pemohon' => $ktp->nama,
         ]);
 
         // Link KTP EL to service request

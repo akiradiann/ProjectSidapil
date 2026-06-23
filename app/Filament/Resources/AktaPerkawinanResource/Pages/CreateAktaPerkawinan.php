@@ -30,6 +30,8 @@ class CreateAktaPerkawinan extends CreateRecord
             'fo_id' => auth()->id(),
             'file_produk' => $akta->file_produk ?? null,
             'catatan' => $akta->catatan ?? null,
+            'no_hp' => $akta->no_hp,
+            'nama_pemohon' => $akta->nama_pelapor,
         ]);
 
         $akta->service_request_id = $serviceRequest->id;

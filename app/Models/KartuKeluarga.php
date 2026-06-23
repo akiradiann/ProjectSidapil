@@ -13,6 +13,7 @@ class KartuKeluarga extends Model
         'no_kk',
         'nama_kepala_keluarga',
         'nama_pemohon',
+        'no_hp',
         'layanan_id',
         'status_pelapor_id',
         'produk_id',
@@ -69,13 +70,17 @@ class KartuKeluarga extends Model
                 $kk->serviceRequest && (
                     $kk->wasChanged('status_ajuan_id') ||
                     $kk->wasChanged('catatan') ||
-                    $kk->wasChanged('produk_id')
+                    $kk->wasChanged('produk_id') ||
+                    $kk->wasChanged('no_hp') ||
+                    $kk->wasChanged('nama_pemohon')
                 )
             ) {
                 $updateData = [
                     'status_ajuan_id' => $kk->status_ajuan_id,
                     'catatan' => $kk->catatan,
                     'jenis_produk_id' => $kk->produk_id,
+                    'no_hp' => $kk->no_hp,
+                    'nama_pemohon' => $kk->nama_pemohon,
                 ];
 
                 // Set operator_id if user is operator

@@ -31,6 +31,8 @@ class CreateKartuKeluarga extends CreateRecord
             'status_ajuan_id' => $kk->status_ajuan_id,
             'fo_id' => auth()->id(),
             'catatan' => $kk->catatan ?? null,
+            'no_hp' => $kk->no_hp,
+            'nama_pemohon' => $kk->nama_pemohon,
         ]);
 
         // Link kartu keluarga to service request

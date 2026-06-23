@@ -31,6 +31,8 @@ class CreateKia extends CreateRecord
             'status_ajuan_id' => $kia->status_ajuan_id,
             'fo_id' => auth()->id(),
             'catatan' => $kia->catatan ?? null,
+            'no_hp' => $kia->no_hp,
+            'nama_pemohon' => $kia->nama,
         ]);
 
         // Link KIA to service request

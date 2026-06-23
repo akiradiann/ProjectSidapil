@@ -89,7 +89,9 @@ class KutipanDuaAktaPerkawinan extends Model
                     $kutipan->wasChanged('status_ajuan_id') ||
                     $kutipan->wasChanged('file_produk') ||
                     $kutipan->wasChanged('catatan') ||
-                    $kutipan->wasChanged('produk_id')
+                    $kutipan->wasChanged('produk_id') ||
+                    $kutipan->wasChanged('no_hp') ||
+                    $kutipan->wasChanged('nama_pelapor')
                 )
             ) {
                 $updateData = [
@@ -97,6 +99,8 @@ class KutipanDuaAktaPerkawinan extends Model
                     'file_produk' => $kutipan->file_produk,
                     'catatan' => $kutipan->catatan,
                     'jenis_produk_id' => $kutipan->produk_id,
+                    'no_hp' => $kutipan->no_hp,
+                    'nama_pemohon' => $kutipan->nama_pelapor,
                 ];
 
                 // Set operator_id if user is operator

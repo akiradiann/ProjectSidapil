@@ -142,7 +142,9 @@ class CatatanPinggir extends Model
                     $catatan->wasChanged('status_ajuan_id') ||
                     $catatan->wasChanged('file_produk') ||
                     $catatan->wasChanged('catatan') ||
-                    $catatan->wasChanged('produk_id')
+                    $catatan->wasChanged('produk_id') ||
+                    $catatan->wasChanged('no_hp') ||
+                    $catatan->wasChanged('nama_pelapor')
                 )
             ) {
                 $updateData = [
@@ -150,6 +152,8 @@ class CatatanPinggir extends Model
                     'file_produk' => $catatan->file_produk,
                     'catatan' => $catatan->catatan,
                     'jenis_produk_id' => $catatan->produk_id,
+                    'no_hp' => $catatan->no_hp,
+                    'nama_pemohon' => $catatan->nama_pelapor,
                 ];
 
                 // Set operator_id if user is operator
