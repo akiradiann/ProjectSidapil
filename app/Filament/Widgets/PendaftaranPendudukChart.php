@@ -10,7 +10,7 @@ class PendaftaranPendudukChart extends ChartWidget
 {
     protected static ?string $heading = 'Layanan Pendaftaran Penduduk';
 
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 5;
 
     protected static ?string $maxHeight = '350px';
 

@@ -115,6 +115,34 @@ class ServiceRequest extends Model
                     ]);
                 }
 
+                // Send database notification based on status
+                $newStatus = $serviceRequest->status_ajuan_id;
+                $nomor = $serviceRequest->nomor_layanan;
+                $layananName = $serviceRequest->jenisLayanan?->nama_layanan ?? 'Layanan';
+
+                if (in_array($newStatus, [StatusAjuan::DITOLAK, StatusAjuan::SIAP_KIRIM])) {
+                    $csUsers = User::where('role', User::ROLE_CUSTOMER_SERVICE)->get();
+                    if ($csUsers->isNotEmpty()) {
+                        $statusName = $newStatus == StatusAjuan::DITOLAK ? 'Ditolak' : 'Siap Kirim';
+                        \Filament\Notifications\Notification::make()
+                            ->title('Status Ajuan ' . $statusName)
+                            ->body("Layanan {$layananName} ({$nomor}) sekarang berstatus {$statusName}.")
+                            ->icon('heroicon-o-document-text')
+                            ->iconColor($newStatus == StatusAjuan::DITOLAK ? 'danger' : 'warning')
+                            ->sendToDatabase($csUsers);
+                    }
+                } elseif ($newStatus == StatusAjuan::SIAP_DIAMBIL) {
+                    $loketUsers = User::where('role', User::ROLE_LOKET)->get();
+                    if ($loketUsers->isNotEmpty()) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Status Ajuan Siap Diambil')
+                            ->body("Layanan {$layananName} ({$nomor}) sekarang siap diambil.")
+                            ->icon('heroicon-o-check-circle')
+                            ->iconColor('success')
+                            ->sendToDatabase($loketUsers);
+                    }
+                }
+
                 // WhatsApp notification logic has been temporarily removed
             }
         });

@@ -49,7 +49,7 @@ class AktaPerkawinanResource extends Resource
     public static function canCreate(): bool
     {
         $user = auth()->user();
-        return $user && ($user->isAdmin() || $user->isFrontOffice() || $user->isOperator());
+        return $user && ($user->isAdmin() || $user->isFrontOffice());
     }
 
     public static function canEdit($record): bool

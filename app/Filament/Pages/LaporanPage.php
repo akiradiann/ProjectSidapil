@@ -172,6 +172,7 @@ class LaporanPage extends Page implements HasForms, HasTable
             User::ROLE_FRONT_OFFICE,
             User::ROLE_OPERATOR,
             User::ROLE_LOKET,
+            User::ROLE_CUSTOMER_SERVICE,
         ]);
     }
 

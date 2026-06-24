@@ -10,7 +10,7 @@ class PencatatanSipilChart extends ChartWidget
 {
     protected static ?string $heading = 'Layanan Pencatatan Sipil';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     protected static ?string $maxHeight = '350px';
 

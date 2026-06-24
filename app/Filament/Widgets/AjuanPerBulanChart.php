@@ -10,7 +10,7 @@ class AjuanPerBulanChart extends ChartWidget
 {
     protected static ?string $heading = 'Total Ajuan per Bulan';
 
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected static ?string $maxHeight = '300px';
 

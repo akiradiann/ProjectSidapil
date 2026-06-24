@@ -54,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\WelcomeWidget::class,
                 \App\Filament\Widgets\StatsOverview::class,
+                \App\Filament\Widgets\LatestRequestsWidget::class,
                 \App\Filament\Widgets\AjuanPerBulanChart::class,
                 \App\Filament\Widgets\PencatatanSipilChart::class,
                 \App\Filament\Widgets\PendaftaranPendudukChart::class,
