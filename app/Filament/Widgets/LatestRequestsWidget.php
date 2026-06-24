@@ -22,7 +22,6 @@ class LatestRequestsWidget extends BaseWidget
             User::ROLE_OPERATOR,
             User::ROLE_CUSTOMER_SERVICE,
             User::ROLE_LOKET,
-            User::ROLE_ADMIN,
         ]);
     }
 
@@ -38,8 +37,6 @@ class LatestRequestsWidget extends BaseWidget
                 $query->whereIn('status_ajuan_id', [StatusAjuan::DITOLAK, StatusAjuan::SIAP_KIRIM]);
             } elseif ($user->isLoket()) {
                 $query->where('status_ajuan_id', StatusAjuan::SIAP_DIAMBIL);
-            } elseif ($user->isAdmin()) {
-                $query->where('status_ajuan_id', '!=', StatusAjuan::SELESAI);
             }
         }
 
