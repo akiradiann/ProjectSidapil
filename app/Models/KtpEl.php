@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class KtpEl extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'ktp_el';
 
     protected $fillable = [

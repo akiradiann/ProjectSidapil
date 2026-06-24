@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PindahDatang extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'pindah_datang';
 
     protected $fillable = [

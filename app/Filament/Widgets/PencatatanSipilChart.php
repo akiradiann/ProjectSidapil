@@ -16,9 +16,11 @@ class PencatatanSipilChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Get current month and year
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
+        // Get selected or default month and year
+        $activeFilter = $this->filter ?? now()->format('Y-m');
+        [$currentYear, $currentMonth] = explode('-', $activeFilter);
+        $currentMonth = (int) $currentMonth;
+        $currentYear = (int) $currentYear;
 
         // Array kategori layanan Pencatatan Sipil (id: 1-9)
         $kategoriPencatatanSipil = [
@@ -114,6 +116,20 @@ class PencatatanSipilChart extends ChartWidget
 
     public function getDescription(): ?string
     {
-        return 'Data bulan ' . now()->format('F Y');
+        $activeFilter = $this->filter ?? now()->format('Y-m');
+        $date = \Carbon\Carbon::createFromFormat('Y-m', $activeFilter);
+        return 'Data bulan ' . $date->translatedFormat('F Y');
+    }
+
+    protected function getFilters(): ?array
+    {
+        $filters = [];
+        $start = now()->startOfMonth();
+        for ($i = 0; $i < 12; $i++) {
+            $date = $start->copy()->subMonths($i);
+            $key = $date->format('Y-m');
+            $filters[$key] = $date->translatedFormat('F Y');
+        }
+        return $filters;
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AktaKematian extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'akta_kematian';
 
     protected $fillable = [

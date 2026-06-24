@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CatatanPinggir extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'catatan_pinggir';
 
     protected $fillable = [

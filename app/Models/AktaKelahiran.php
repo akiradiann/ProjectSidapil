@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AktaKelahiran extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'akta_kelahiran';
 
     protected $fillable = [

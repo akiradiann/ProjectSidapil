@@ -281,7 +281,9 @@ class SuratResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            \App\Filament\Resources\ServiceRequestResource\RelationManagers\LogsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

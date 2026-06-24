@@ -43,6 +43,19 @@ class LogsRelationManager extends RelationManager
                     ->label('Petugas')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('user.role')
+                    ->label('Role')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => \App\Models\User::getRoles()[$state] ?? $state)
+                    ->color(fn ($state) => match ($state) {
+                        \App\Models\User::ROLE_ADMIN => 'danger',
+                        \App\Models\User::ROLE_FRONT_OFFICE => 'info',
+                        \App\Models\User::ROLE_OPERATOR => 'success',
+                        \App\Models\User::ROLE_CUSTOMER_SERVICE => 'warning',
+                        \App\Models\User::ROLE_LOKET => 'primary',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('catatan')
                     ->label('Catatan')
                     ->limit(50)

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kia extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'kia';
 
     protected $fillable = [

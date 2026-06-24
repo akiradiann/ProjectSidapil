@@ -324,7 +324,7 @@ class AktaPerkawinanResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\ServiceRequestResource\RelationManagers\LogsRelationManager::class,
         ];
     }
 

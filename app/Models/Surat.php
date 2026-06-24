@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Surat extends Model
 {
+    use \App\Traits\HasServiceRequestLogs;
     protected $table = 'surat';
 
     protected $fillable = [
