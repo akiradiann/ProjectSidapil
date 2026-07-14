@@ -20,5 +20,6 @@ class StatusAjuan extends Model
     const SIAP_KIRIM = 3;
     const SIAP_DIAMBIL = 4;
     const SELESAI = 5;
+    const REVISI = 6;
 }
 

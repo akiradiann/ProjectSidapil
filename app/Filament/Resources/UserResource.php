@@ -130,6 +130,11 @@ class UserResource extends Resource
                         default => 'gray',
                     })
                     ->sortable(),
+                Tables\Columns\TextColumn::make('handled_requests_count')
+                    ->label('Ajuan Ditangani')
+                    ->badge()
+                    ->color('info')
+                    ->getStateUsing(fn ($record) => $record->handled_requests_count),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime('d M Y H:i')
@@ -180,7 +185,7 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\UserResource\RelationManagers\HandledRequestsRelationManager::class,
         ];
     }
 

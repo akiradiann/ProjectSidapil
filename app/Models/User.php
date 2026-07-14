@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -168,6 +169,52 @@ class User extends Authenticatable implements FilamentUser
             self::ROLE_OPERATOR,
             self::ROLE_LOKET,
         ]);
+    }
+
+    /**
+     * Get service requests created by this FO
+     */
+    public function serviceRequestsAsFo(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'fo_id');
+    }
+
+    /**
+     * Get service requests processed by this Operator
+     */
+    public function serviceRequestsAsOperator(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'operator_id');
+    }
+
+    /**
+     * Get service requests shipped/completed by this CS
+     */
+    public function serviceRequestsAsCs(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'cs_id');
+    }
+
+    /**
+     * Get service requests handed over by this Loket
+     */
+    public function serviceRequestsAsLoket(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'loket_id');
+    }
+
+    /**
+     * Get total count of handled requests based on current user role
+     */
+    public function getHandledRequestsCountAttribute(): int
+    {
+        return match ($this->role) {
+            self::ROLE_FRONT_OFFICE => $this->serviceRequestsAsFo()->count(),
+            self::ROLE_OPERATOR => $this->serviceRequestsAsOperator()->count(),
+            self::ROLE_CUSTOMER_SERVICE => $this->serviceRequestsAsCs()->count(),
+            self::ROLE_LOKET => $this->serviceRequestsAsLoket()->count(),
+            default => 0,
+        };
     }
 
     /**

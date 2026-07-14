@@ -28,11 +28,15 @@ class ServiceRequest extends Model
         'catatan',
         'catatan_tambahan',
         'selesai_at',
+        'is_downloaded',
+        'checklist_persyaratan',
     ];
 
     protected $casts = [
         'file_produk' => 'array',
         'selesai_at' => 'datetime',
+        'is_downloaded' => 'boolean',
+        'checklist_persyaratan' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -100,6 +104,11 @@ class ServiceRequest extends Model
                 if ($newStatus == StatusAjuan::SELESAI) {
                     $serviceRequest->selesai_at = now();
                 }
+            }
+            
+            // Reset is_downloaded to false if file_produk was modified (uploaded or changed)
+            if ($serviceRequest->isDirty('file_produk')) {
+                $serviceRequest->is_downloaded = false;
             }
         });
 

@@ -657,12 +657,25 @@ class PengirimanResource extends Resource
                             ])
                             ->default(fn($record) => $record->status_ajuan_id ?? StatusAjuan::SIAP_KIRIM)
                             ->required()
-                            ->disabled(fn($record) => $record && $record->status_ajuan_id == StatusAjuan::SELESAI)
-                            ->helperText('Pilih SELESAI setelah mengirim file/alasan ke warga'),
+                            ->disabled(fn($record) => 
+                                !$record || 
+                                $record->status_ajuan_id == StatusAjuan::SELESAI ||
+                                ($record->file_produk && !$record->is_downloaded)
+                            )
+                            ->helperText(fn($record) => 
+                                !$record ? 'Pilih SELESAI setelah mengirim file/alasan ke warga' : (
+                                ($record->file_produk && !$record->is_downloaded)
+                                ? 'Unduh file terlebih dahulu sebelum menandai selesai!'
+                                : 'Pilih SELESAI setelah mengirim file/alasan ke warga'
+                                )
+                            ),
                     ])
-                    ->visible(fn($record) => $record &&
+                    ->visible(fn($record) => 
+                        $record &&
+                        ($isCS || $isAdmin) &&
                         ($record->status_ajuan_id == StatusAjuan::SIAP_KIRIM ||
-                            $record->status_ajuan_id == StatusAjuan::DITOLAK)),
+                            $record->status_ajuan_id == StatusAjuan::DITOLAK)
+                    ),
             ]);
     }
 
@@ -680,7 +693,9 @@ class PengirimanResource extends Resource
                     ->label('Nama Pemohon')
                     ->searchable()
                     ->sortable()
-                    ->weight('medium'),
+                    ->weight('medium')
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('no_hp')
                     ->label('No. HP')
                     ->searchable()
@@ -690,9 +705,12 @@ class PengirimanResource extends Resource
                     ->label('Status')
                     ->badge()
                     ->color(fn($record) => match ($record->status_ajuan_id) {
+                        1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM (hijau)
+                        4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI (oren)
                         default => 'gray',
                     })
                     ->sortable(),
@@ -765,6 +783,46 @@ class PengirimanResource extends Resource
                     ->icon('heroicon-o-eye')
                     ->label('Lihat')
                     ->extraAttributes(['style' => 'margin-right: 0.375rem !important;']),
+                Tables\Actions\Action::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->url(function ($record) {
+                        $phone = $record->no_hp;
+                        if (!$phone) {
+                            return null;
+                        }
+                        if (str_starts_with($phone, '0')) {
+                            $phone = '62' . substr($phone, 1);
+                        }
+                        $phone = preg_replace('/[^0-9]/', '', $phone);
+                        
+                        $kategori = $record->kategoriLayanan?->nama_kategori ?? '-';
+                        
+                        if ($record->status_ajuan_id == StatusAjuan::DITOLAK) {
+                            $message = "Halo " . $record->nama_pemohon . ",\n\n"
+                                . "Kami informasikan bahwa permohonan layanan " . $kategori . " dengan nomor layanan " . $record->nomor_layanan . " DITOLAK.\n\n"
+                                . "Alasan Penolakan:\n"
+                                . "\"" . ($record->catatan ?? 'Terdapat berkas yang tidak sesuai/belum lengkap') . "\"\n\n"
+                                . "Mohon untuk memeriksa kembali alasan penolakan di atas dan melakukan perbaikan dokumen sesuai petunjuk. Apabila terdapat kendala, silakan menghubungi petugas Dinas Kependudukan dan Pencatatan Sipil Kab Klaten.\n\n"
+                                . "Terima kasih.\n\n"
+                                . "Hormat kami,\n"
+                                . "Dinas Kependudukan dan Pencatatan Sipil\n"
+                                . "Kabupaten Klaten";
+                        } else {
+                            $message = "Halo " . $record->nama_pemohon . ",\n\n"
+                                . "Kami informasikan bahwa permohonan layanan " . $kategori . " dengan nomor layanan " . $record->nomor_layanan . " telah selesai diproses.\n\n"
+                                . "Dokumen hasil layanan telah kami lampirkan pada pesan ini. Mohon untuk memeriksa kembali dokumen yang diterima. Apabila terdapat kendala, silakan menghubungi petugas Dinas Kependudukan dan Pencatatan Sipil Kab Klaten.\n\n"
+                                . "Terima kasih telah menggunakan layanan kami. \n\n"
+                                . "Hormat kami,\n"
+                                . "Dinas Kependudukan dan Pencatatan Sipil\n"
+                                . "Kabupaten Klaten";
+                        }
+                            
+                        return "https://wa.me/" . $phone . "?text=" . urlencode($message);
+                    })
+                    ->openUrlInNewTab()
+                    ->extraAttributes(['style' => 'margin-right: 0.375rem !important;']),
                 Tables\Actions\Action::make('mark_selesai')
                     ->label(
                         fn($record) => $record->status_ajuan_id == StatusAjuan::SELESAI
@@ -777,7 +835,15 @@ class PengirimanResource extends Resource
                         ? 'primary'
                         : 'success'
                     )
-                    ->disabled(fn($record) => $record->status_ajuan_id == StatusAjuan::SELESAI)
+                    ->disabled(fn($record) => 
+                        $record->status_ajuan_id == StatusAjuan::SELESAI ||
+                        ($record->file_produk && !$record->is_downloaded)
+                    )
+                    ->tooltip(fn($record) => 
+                        ($record->file_produk && !$record->is_downloaded) 
+                        ? 'File produk harus diunduh terlebih dahulu' 
+                        : null
+                    )
                     ->requiresConfirmation(fn($record) => $record->status_ajuan_id != StatusAjuan::SELESAI)
                     ->modalHeading('Tandai Sebagai Selesai')
                     ->modalDescription('Apakah Anda yakin sudah mengirim file/alasan ke warga?')
@@ -876,12 +942,14 @@ class PengirimanResource extends Resource
                     })
                     ->visible(
                         fn($record) =>
-                        $record->status_ajuan_id == StatusAjuan::SIAP_KIRIM ||
-                        $record->status_ajuan_id == StatusAjuan::DITOLAK ||
-                        $record->status_ajuan_id == StatusAjuan::SELESAI
+                        (auth()->user()?->isCustomerService() || auth()->user()?->isAdmin()) &&
+                        ($record->status_ajuan_id == StatusAjuan::SIAP_KIRIM ||
+                         $record->status_ajuan_id == StatusAjuan::DITOLAK ||
+                         $record->status_ajuan_id == StatusAjuan::SELESAI)
                     ),
             ])
             ->actionsAlignment('left')
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc')
             ->modifyQueryUsing(function (Builder $query) {
                 // Show requests that need to be sent OR already completed:

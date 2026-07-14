@@ -168,6 +168,23 @@ class AktaPerceraianResource extends Resource
                     ])
                     ->columns(2),
 
+                                Forms\Components\Section::make('Checklist Persyaratan')
+                    ->description('Centang dokumen persyaratan yang sudah lengkap')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
+                            ->label('Persyaratan')
+                            ->options([
+                                    'Salinan Putusan Pengadilan yang Berkekuatan Hukum Tetap' => 'Salinan Putusan Pengadilan yang Berkekuatan Hukum Tetap',
+                                    'Salinan Akta Perkawinan' => 'Salinan Akta Perkawinan',
+                                    'Kartu Keluarga' => 'Kartu Keluarga',
+                                    'KTP-el Pemohon' => 'KTP-el Pemohon',
+                            ])
+                            ->bulkToggleable()
+                            ->columns(1)
+                    ])
+                    ->visible(fn ($record) => ($isOperator || $isAdmin) && $record !== null)
+                    ->collapsible(),
+
                 Forms\Components\Section::make('Status & Produk')
                     ->description('Kelola status dan produk ajuan')
                     ->schema([
@@ -175,15 +192,32 @@ class AktaPerceraianResource extends Resource
                             ->label('Produk')
                             ->options(JenisProduk::all()->pluck('nama_produk', 'id'))
                             ->searchable()
-                            ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket),
+                            ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                $statusId = $get('status_ajuan_id');
+                                if ($state == 1 && $statusId == StatusAjuan::SIAP_KIRIM) {
+                                    $set('status_ajuan_id', null);
+                                } elseif ($state == 2 && $statusId == StatusAjuan::SIAP_DIAMBIL) {
+                                    $set('status_ajuan_id', null);
+                                }
+                            }),
                         Forms\Components\Select::make('status_ajuan_id')
                             ->label('Status Ajuan')
-                            ->options(StatusAjuan::all()->pluck('nama_status', 'id'))
+                            ->options(function (Forms\Get $get) {
+                                $options = StatusAjuan::all()->pluck('nama_status', 'id');
+                                $produkId = $get('produk_id');
+                                if ($produkId == 1) { // DIAMBIL
+                                    $options->forget(StatusAjuan::SIAP_KIRIM);
+                                } elseif ($produkId == 2) { // FILE
+                                    $options->forget(StatusAjuan::SIAP_DIAMBIL);
+                                }
+                                return $options;
+                            })
                             ->required()
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->default(StatusAjuan::DIPROSES)
-                            ->reactive(),
+                            ->default(StatusAjuan::DIPROSES),
                         Forms\Components\FileUpload::make('file_produk')
                             ->label('Upload File (Opsional)')
                             ->acceptedFileTypes(['application/pdf'])
@@ -232,7 +266,9 @@ class AktaPerceraianResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->copyable()
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('nomor_akta_perkawinan')
                     ->label('No Akta Perkawinan')
                     ->searchable()
@@ -267,9 +303,10 @@ class AktaPerceraianResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM (hijau)
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI (oren)
                         default => 'gray',
                     })
                     ->sortable(),
@@ -311,6 +348,7 @@ class AktaPerceraianResource extends Resource
                 ]),
             ])
             ->recordUrl(null)
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('Belum ada akta perceraian')
             ->emptyStateDescription('Mulai dengan membuat akta perceraian baru.')

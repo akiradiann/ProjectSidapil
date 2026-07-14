@@ -44,13 +44,18 @@ class LaporanPage extends Page implements HasForms, HasTable
     public $showDispensasiTable = false;
     public $dispensasiTotal = 0;
 
-    // Section 1: Laporan Layanan
+    // Section 1: Laporan Bulanan
     public ?int $kategori_layanan_id = null;
     public ?int $bulan = null;
     public ?int $tahun = null;
     public $layananData = [];
     public $showLayananTable = false;
     public $layananTotal = 0;
+
+    // Section 1b: Laporan Tahunan
+    public ?int $tahunan_kategori_layanan_id = null;
+    public ?int $tahunan_tahun = null;
+    public ?string $tipeLaporan = null; // 'bulanan' or 'tahunan'
 
     // Section 2: Statistik Layanan
     public ?string $tanggal_mulai = null;
@@ -61,6 +66,7 @@ class LaporanPage extends Page implements HasForms, HasTable
     public function mount(): void
     {
         $this->tahun = (int) date('Y');
+        $this->tahunan_tahun = (int) date('Y');
     }
 
     // DISPENSASI METHODS
@@ -161,6 +167,14 @@ class LaporanPage extends Page implements HasForms, HasTable
         }
     }
 
+    public function updatedTahunanKategoriLayananId($value): void
+    {
+        $this->resetLayananData();
+        if ($this->showLayananTable) {
+            $this->resetTable();
+        }
+    }
+
     /**
      * All roles can access
      */
@@ -184,7 +198,18 @@ class LaporanPage extends Page implements HasForms, HasTable
             ->query($this->getLayananQuery())
             ->columns($this->getTableColumns())
             ->filters([
-                //
+                \Filament\Tables\Filters\SelectFilter::make('status_ajuan_id')
+                    ->label('Status Ajuan')
+                    ->options(\App\Models\StatusAjuan::all()->pluck('nama_status', 'id'))
+                    ->multiple(),
+                \Filament\Tables\Filters\SelectFilter::make('jenis_produk_id')
+                    ->label('Jenis Produk')
+                    ->options(\App\Models\JenisProduk::all()->pluck('nama_produk', 'id'))
+                    ->multiple(),
+                \Filament\Tables\Filters\SelectFilter::make('jenis_layanan_id')
+                    ->label('Jenis Layanan')
+                    ->options(\App\Models\JenisLayanan::all()->pluck('nama_layanan', 'id'))
+                    ->multiple(),
             ])
             ->actions([
                 //
@@ -201,11 +226,20 @@ class LaporanPage extends Page implements HasForms, HasTable
 
     protected function getTableColumns(): array
     {
-        if (!$this->kategori_layanan_id) {
+        $kategoriId = null;
+        if ($this->tipeLaporan === 'bulanan') {
+            $kategoriId = $this->kategori_layanan_id;
+        } elseif ($this->tipeLaporan === 'tahunan') {
+            $kategoriId = $this->tahunan_kategori_layanan_id;
+        } else {
+            $kategoriId = $this->kategori_layanan_id ?: $this->tahunan_kategori_layanan_id;
+        }
+
+        if (!$kategoriId) {
             return [];
         }
 
-        $kategori = KategoriLayanan::find($this->kategori_layanan_id);
+        $kategori = KategoriLayanan::find($kategoriId);
         if (!$kategori) {
             return [];
         }
@@ -653,35 +687,53 @@ class LaporanPage extends Page implements HasForms, HasTable
 
     protected function getLayananQuery(): Builder
     {
-        if (!$this->kategori_layanan_id || !$this->bulan || !$this->showLayananTable) {
+        if (!$this->showLayananTable || !$this->tipeLaporan) {
             return ServiceRequest::query()->whereRaw('1 = 0'); // Empty query
         }
 
+        if ($this->tipeLaporan === 'bulanan') {
+            if (!$this->kategori_layanan_id || !$this->bulan || !$this->tahun) {
+                return ServiceRequest::query()->whereRaw('1 = 0');
+            }
+            $kategoriId = $this->kategori_layanan_id;
+            $tahun = $this->tahun;
+        } else {
+            if (!$this->tahunan_kategori_layanan_id || !$this->tahunan_tahun) {
+                return ServiceRequest::query()->whereRaw('1 = 0');
+            }
+            $kategoriId = $this->tahunan_kategori_layanan_id;
+            $tahun = $this->tahunan_tahun;
+        }
+
         $query = ServiceRequest::query()
-            ->where('kategori_layanan_id', $this->kategori_layanan_id)
-            ->whereYear('created_at', $this->tahun)
-            ->whereMonth('created_at', $this->bulan)
-            ->with([
-                'kategoriLayanan',
-                'jenisLayanan',
-                'statusPelapor',
-                'statusAjuan',
-                'jenisProduk',
-                'aktaKelahiran',
-                'aktaKematian',
-                'aktaPerkawinan',
-                'aktaPerceraian',
-                'kutipanDuaAktaKelahiran',
-                'kutipanDuaAktaKematian',
-                'kutipanDuaAktaPerkawinan',
-                'kutipanDuaAktaPerceraian',
-                'kartuKeluarga',
-                'pindahDatang',
-                'ktpEl',
-                'kia',
-                'catatanPinggir',
-                'surat',
-            ]);
+            ->where('kategori_layanan_id', $kategoriId)
+            ->whereYear('created_at', $tahun);
+
+        if ($this->tipeLaporan === 'bulanan') {
+            $query->whereMonth('created_at', $this->bulan);
+        }
+
+        $query->with([
+            'kategoriLayanan',
+            'jenisLayanan',
+            'statusPelapor',
+            'statusAjuan',
+            'jenisProduk',
+            'aktaKelahiran',
+            'aktaKematian',
+            'aktaPerkawinan',
+            'aktaPerceraian',
+            'kutipanDuaAktaKelahiran',
+            'kutipanDuaAktaKematian',
+            'kutipanDuaAktaPerkawinan',
+            'kutipanDuaAktaPerceraian',
+            'kartuKeluarga',
+            'pindahDatang',
+            'ktpEl',
+            'kia',
+            'catatanPinggir',
+            'surat',
+        ]);
 
         return $query;
     }
@@ -694,23 +746,20 @@ class LaporanPage extends Page implements HasForms, HasTable
             'tahun' => 'required|integer',
         ]);
 
-        // Always show table and calculate total
+        $this->tipeLaporan = 'bulanan';
         $this->showLayananTable = true;
 
-        // Get total count with fresh query
         $this->layananTotal = ServiceRequest::query()
             ->where('kategori_layanan_id', $this->kategori_layanan_id)
             ->whereYear('created_at', $this->tahun)
             ->whereMonth('created_at', $this->bulan)
             ->count();
 
-        // Reset table to refresh query - this forces table to re-render with new data
         $this->resetTable();
 
         $kategori = KategoriLayanan::find($this->kategori_layanan_id);
         $kategoriNama = $kategori ? $kategori->nama_kategori : '';
 
-        // Show notification based on result
         if ($this->layananTotal > 0) {
             Notification::make()
                 ->title('Data berhasil dimuat')
@@ -725,15 +774,43 @@ class LaporanPage extends Page implements HasForms, HasTable
         }
     }
 
-    public function downloadExcel()
+    public function tampilkanLayananTahunan(): void
     {
         $this->validate([
-            'kategori_layanan_id' => 'required|integer|exists:kategori_layanan,id',
-            'bulan' => 'required|integer|min:1|max:12',
-            'tahun' => 'required|integer',
+            'tahunan_kategori_layanan_id' => 'required|integer|exists:kategori_layanan,id',
+            'tahunan_tahun' => 'required|integer',
         ]);
 
-        if (!$this->showLayananTable) {
+        $this->tipeLaporan = 'tahunan';
+        $this->showLayananTable = true;
+
+        $this->layananTotal = ServiceRequest::query()
+            ->where('kategori_layanan_id', $this->tahunan_kategori_layanan_id)
+            ->whereYear('created_at', $this->tahunan_tahun)
+            ->count();
+
+        $this->resetTable();
+
+        $kategori = KategoriLayanan::find($this->tahunan_kategori_layanan_id);
+        $kategoriNama = $kategori ? $kategori->nama_kategori : '';
+
+        if ($this->layananTotal > 0) {
+            Notification::make()
+                ->title('Data berhasil dimuat')
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Data tidak ditemukan')
+                ->warning()
+                ->body("Tidak ada data {$kategoriNama} untuk tahun yang dipilih.")
+                ->send();
+        }
+    }
+
+    public function downloadExcel()
+    {
+        if (!$this->showLayananTable || !$this->tipeLaporan) {
             Notification::make()
                 ->title('Silakan klik "Tampilkan" terlebih dahulu')
                 ->warning()
@@ -741,33 +818,45 @@ class LaporanPage extends Page implements HasForms, HasTable
             return;
         }
 
-        $bulanNama = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember',
-        ];
+        if ($this->tipeLaporan === 'bulanan') {
+            $this->validate([
+                'kategori_layanan_id' => 'required|integer|exists:kategori_layanan,id',
+                'bulan' => 'required|integer|min:1|max:12',
+                'tahun' => 'required|integer',
+            ]);
 
-        $namaBulan = $bulanNama[$this->bulan];
-        $kategori = KategoriLayanan::find($this->kategori_layanan_id);
-        $kategoriNama = $kategori ? $kategori->nama_kategori : 'Layanan';
+            $bulanNama = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+            ];
+            $namaBulan = $bulanNama[$this->bulan];
+            $kategori = KategoriLayanan::find($this->kategori_layanan_id);
+            $kategoriNama = $kategori ? $kategori->nama_kategori : 'Layanan';
+            $tahunExport = $this->tahun;
 
-        $fileName = "Laporan_{$kategoriNama}_{$namaBulan}_{$this->tahun}.xlsx";
+            $fileName = "Laporan_{$kategoriNama}_{$namaBulan}_{$this->tahun}.xlsx";
+        } else {
+            $this->validate([
+                'tahunan_kategori_layanan_id' => 'required|integer|exists:kategori_layanan,id',
+                'tahunan_tahun' => 'required|integer',
+            ]);
+
+            $namaBulan = 'TAHUNAN';
+            $kategori = KategoriLayanan::find($this->tahunan_kategori_layanan_id);
+            $kategoriNama = $kategori ? $kategori->nama_kategori : 'Layanan';
+            $tahunExport = $this->tahunan_tahun;
+
+            $fileName = "Laporan_{$kategoriNama}_Tahunan_{$this->tahunan_tahun}.xlsx";
+        }
+
         $fileName = str_replace([' ', '/'], '_', $fileName);
 
         $data = $this->getLayananQuery()->get();
 
         try {
             return Excel::download(
-                new LayananExport($data, $kategoriNama, $namaBulan, $this->tahun),
+                new LayananExport($data, $kategoriNama, $namaBulan, $tahunExport),
                 $fileName
             );
         } catch (\Exception $e) {
@@ -777,6 +866,18 @@ class LaporanPage extends Page implements HasForms, HasTable
                 ->danger()
                 ->send();
         }
+    }
+
+    public function downloadExcelBulanan()
+    {
+        $this->tipeLaporan = 'bulanan';
+        return $this->downloadExcel();
+    }
+
+    public function downloadExcelTahunan()
+    {
+        $this->tipeLaporan = 'tahunan';
+        return $this->downloadExcel();
     }
 
     public function tampilkanStatistik(): void
@@ -892,6 +993,10 @@ class LaporanPage extends Page implements HasForms, HasTable
 
     public function getBulanNama(): ?string
     {
+        if ($this->tipeLaporan === 'tahunan') {
+            return 'Tahunan';
+        }
+
         if (!$this->bulan) {
             return null;
         }
@@ -916,11 +1021,12 @@ class LaporanPage extends Page implements HasForms, HasTable
 
     public function getKategoriNama(): ?string
     {
-        if (!$this->kategori_layanan_id) {
+        $kategoriId = $this->tipeLaporan === 'bulanan' ? $this->kategori_layanan_id : $this->tahunan_kategori_layanan_id;
+        if (!$kategoriId) {
             return null;
         }
 
-        $kategori = KategoriLayanan::find($this->kategori_layanan_id);
+        $kategori = KategoriLayanan::find($kategoriId);
         return $kategori ? $kategori->nama_kategori : null;
     }
 

@@ -549,8 +549,12 @@ class LayananExport implements FromCollection, WithHeadings, WithStyles, WithCol
                 $sheet->insertNewRowBefore(1, 3);
 
                 // Title row - Format: DATA LAYANAN {KATEGORI} BULAN {BULAN} TAHUN {TAHUN}
-                $bulanUpper = strtoupper($this->bulan);
-                $title = "DATA LAYANAN {$this->kategoriNama} BULAN {$bulanUpper} TAHUN {$this->tahun}";
+                if ($this->bulan && strtoupper($this->bulan) !== 'TAHUNAN') {
+                    $bulanUpper = strtoupper($this->bulan);
+                    $title = "DATA LAYANAN {$this->kategoriNama} BULAN {$bulanUpper} TAHUN {$this->tahun}";
+                } else {
+                    $title = "DATA LAYANAN {$this->kategoriNama} TAHUN {$this->tahun}";
+                }
                 $sheet->mergeCells("A1:{$lastColumn}1");
                 $sheet->setCellValue('A1', $title);
                 $sheet->getStyle('A1')->applyFromArray([

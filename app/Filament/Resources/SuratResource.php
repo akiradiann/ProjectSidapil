@@ -212,7 +212,9 @@ class SuratResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->copyable()
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('jenis')
                     ->label('Jenis')
                     ->badge()
@@ -237,9 +239,10 @@ class SuratResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM (hijau)
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI (oren)
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('created_at')
@@ -276,6 +279,7 @@ class SuratResource extends Resource
                 ]),
             ])
             ->recordUrl(null)
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc');
     }
 

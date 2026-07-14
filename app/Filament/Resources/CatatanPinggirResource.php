@@ -132,12 +132,35 @@ class CatatanPinggirResource extends Resource
                 // PRB - Perubahan Nama
                 Forms\Components\Section::make('Perubahan Nama')
                     ->schema([
-                        Forms\Components\TextInput::make('nomor_akta_prb')
+                        Forms\Components\Select::make('nomor_akta_prb')
                             ->label('Nomor Akta')
                             ->required()
-                            ->maxLength(255)
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
+                                    ->orWhere('nama', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\AktaKelahiran::where('nomor', $state)->first();
+                                    if ($ref) {
+                                        $set('nama_sebelum', $ref->nama);
+                                    }
+                                }
+                            })
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
-                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PRB),
+                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PRB)
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik nomor baru jika belum ada.'),
                         Forms\Components\TextInput::make('nama_sebelum')
                             ->label('Nama Sebelum')
                             ->required()
@@ -172,12 +195,35 @@ class CatatanPinggirResource extends Resource
                 // PGSH - Pengesahan
                 Forms\Components\Section::make('Pengesahan')
                     ->schema([
-                        Forms\Components\TextInput::make('nomor_akta_pgsh')
+                        Forms\Components\Select::make('nomor_akta_pgsh')
                             ->label('Nomor Akta')
                             ->required()
-                            ->maxLength(255)
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
+                                    ->orWhere('nama', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\AktaKelahiran::where('nomor', $state)->first();
+                                    if ($ref) {
+                                        $set('nama_anak_pgsh', $ref->nama);
+                                    }
+                                }
+                            })
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
-                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PGSH),
+                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PGSH)
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik nomor baru jika belum ada.'),
                         Forms\Components\TextInput::make('nama_anak_pgsh')
                             ->label('Nama Anak')
                             ->required()
@@ -214,12 +260,35 @@ class CatatanPinggirResource extends Resource
                 // PGN - Pengangkatan Anak
                 Forms\Components\Section::make('Pengangkatan Anak')
                     ->schema([
-                        Forms\Components\TextInput::make('nomor_akta_pgn')
+                        Forms\Components\Select::make('nomor_akta_pgn')
                             ->label('Nomor Akta')
                             ->required()
-                            ->maxLength(255)
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
+                                    ->orWhere('nama', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\AktaKelahiran::where('nomor', $state)->first();
+                                    if ($ref) {
+                                        $set('nama_anak_pgn', $ref->nama);
+                                    }
+                                }
+                            })
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
-                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PGN),
+                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PGN)
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik nomor baru jika belum ada.'),
                         Forms\Components\TextInput::make('nama_anak_pgn')
                             ->label('Nama Anak')
                             ->required()
@@ -266,12 +335,35 @@ class CatatanPinggirResource extends Resource
                 // PGK - Pengakuan Anak
                 Forms\Components\Section::make('Pengakuan Anak')
                     ->schema([
-                        Forms\Components\TextInput::make('nomor_akta_pgk')
+                        Forms\Components\Select::make('nomor_akta_pgk')
                             ->label('Nomor Akta')
                             ->required()
-                            ->maxLength(255)
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
+                                    ->orWhere('nama', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\AktaKelahiran::where('nomor', $state)->first();
+                                    if ($ref) {
+                                        $set('nama_anak_pgk', $ref->nama);
+                                    }
+                                }
+                            })
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
-                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PGK),
+                            ->visible(fn(Forms\Get $get) => $get('kode') == CatatanPinggir::KODE_PGK)
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik nomor baru jika belum ada.'),
                         Forms\Components\TextInput::make('nama_anak_pgk')
                             ->label('Nama Anak')
                             ->required()
@@ -410,6 +502,64 @@ class CatatanPinggirResource extends Resource
                     ])
                     ->columns(2),
 
+                Forms\Components\Section::make('Checklist Persyaratan')
+                    ->description('Centang dokumen persyaratan yang sudah lengkap')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
+                            ->label('Persyaratan')
+                            ->options(function (Forms\Get $get) {
+                                $kode = $get('kode');
+                                if ($kode == CatatanPinggir::KODE_PRB) {
+                                    return [
+                                        'Penetapan Pengadilan Negeri tentang Perubahan Nama' => 'Penetapan Pengadilan Negeri tentang Perubahan Nama',
+                                        'Akta Kelahiran' => 'Akta Kelahiran',
+                                        'Kartu Keluarga' => 'Kartu Keluarga',
+                                        'KTP-el Pemohon' => 'KTP-el Pemohon'
+                                    ];
+                                } elseif ($kode == CatatanPinggir::KODE_PGK) {
+                                    return [
+                                        'Surat Pernyataan Pengakuan Anak dari Ayah Biologis' => 'Surat Pernyataan Pengakuan Anak dari Ayah Biologis',
+                                        'Surat Persetujuan Ibu Kandung' => 'Surat Persetujuan Ibu Kandung',
+                                        'Akta Kelahiran Anak' => 'Akta Kelahiran Anak',
+                                        'Kartu Keluarga' => 'Kartu Keluarga',
+                                        'KTP-el Ayah dan Ibu' => 'KTP-el Ayah dan Ibu',
+                                        'Penetapan Pengadilan, jika pengakuan berdasarkan putusan pengadilan' => 'Penetapan Pengadilan, jika pengakuan berdasarkan putusan pengadilan'
+                                    ];
+                                } elseif ($kode == CatatanPinggir::KODE_PGSH) {
+                                    return [
+                                        'Akta Kelahiran Anak' => 'Akta Kelahiran Anak',
+                                        'Buku Nikah/Akta Perkawinan Orang Tua' => 'Buku Nikah/Akta Perkawinan Orang Tua',
+                                        'Kartu Keluarga' => 'Kartu Keluarga',
+                                        'KTP-el Kedua Orang Tua' => 'KTP-el Kedua Orang Tua',
+                                        'Penetapan Pengadilan, jika diperlukan' => 'Penetapan Pengadilan, jika diperlukan'
+                                    ];
+                                } elseif ($kode == CatatanPinggir::KODE_PGN) {
+                                    return [
+                                        'Penetapan Pengadilan tentang Pengangkatan Anak' => 'Penetapan Pengadilan tentang Pengangkatan Anak',
+                                        'Kutipan Akta Kelahiran Anak' => 'Kutipan Akta Kelahiran Anak',
+                                        'Kartu Keluarga Orang Tua Angkat' => 'Kartu Keluarga Orang Tua Angkat',
+                                        'KTP-el Orang Tua Angkat' => 'KTP-el Orang Tua Angkat'
+                                    ];
+                                } elseif ($kode == CatatanPinggir::KODE_PKOI) {
+                                    return [
+                                        'Keputusan atau Bukti Resmi Perubahan Kewarganegaraan' => 'Keputusan atau Bukti Resmi Perubahan Kewarganegaraan',
+                                        'Berita Acara Pengucapan Sumpah/Janji Setia' => 'Berita Acara Pengucapan Sumpah/Janji Setia',
+                                        'Akta Kelahiran' => 'Akta Kelahiran',
+                                        'Kartu Keluarga' => 'Kartu Keluarga',
+                                        'KTP-el' => 'KTP-el',
+                                        'Paspor atau Dokumen Perjalanan' => 'Paspor atau Dokumen Perjalanan',
+                                        'Akta Perkawinan, jika sudah menikah' => 'Akta Perkawinan, jika sudah menikah',
+                                        'Keputusan Presiden/Menteri, sesuai jenis perubahan kewarganegaraan' => 'Keputusan Presiden/Menteri, sesuai jenis perubahan kewarganegaraan'
+                                    ];
+                                }
+                                return [];
+                            })
+                            ->bulkToggleable()
+                            ->columns(1)
+                    ])
+                    ->visible(fn ($record) => ($isOperator || $isAdmin) && $record !== null)
+                    ->collapsible(),
+
                 Forms\Components\Section::make('Status & Produk')
                     ->description('Kelola status dan produk ajuan')
                     ->schema([
@@ -417,15 +567,32 @@ class CatatanPinggirResource extends Resource
                             ->label('Jenis Produk')
                             ->options(JenisProduk::all()->pluck('nama_produk', 'id'))
                             ->searchable()
-                            ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket),
+                            ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                $statusId = $get('status_ajuan_id');
+                                if ($state == 1 && $statusId == StatusAjuan::SIAP_KIRIM) {
+                                    $set('status_ajuan_id', null);
+                                } elseif ($state == 2 && $statusId == StatusAjuan::SIAP_DIAMBIL) {
+                                    $set('status_ajuan_id', null);
+                                }
+                            }),
                         Forms\Components\Select::make('status_ajuan_id')
                             ->label('Status Ajuan')
-                            ->options(StatusAjuan::all()->pluck('nama_status', 'id'))
+                            ->options(function (Forms\Get $get) {
+                                $options = StatusAjuan::all()->pluck('nama_status', 'id');
+                                $produkId = $get('produk_id');
+                                if ($produkId == 1) { // DIAMBIL
+                                    $options->forget(StatusAjuan::SIAP_KIRIM);
+                                } elseif ($produkId == 2) { // FILE
+                                    $options->forget(StatusAjuan::SIAP_DIAMBIL);
+                                }
+                                return $options;
+                            })
                             ->required()
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->default(StatusAjuan::DIPROSES)
-                            ->reactive(),
+                            ->default(StatusAjuan::DIPROSES),
                         Forms\Components\FileUpload::make('file_produk')
                             ->label('File Produk (PDF)')
                             ->acceptedFileTypes(['application/pdf'])
@@ -474,7 +641,9 @@ class CatatanPinggirResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->copyable()
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('kode')
                     ->label('Kode')
                     ->searchable()
@@ -516,9 +685,10 @@ class CatatanPinggirResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM (hijau)
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI (oren)
                         default => 'gray',
                     })
                     ->sortable(),
@@ -564,6 +734,7 @@ class CatatanPinggirResource extends Resource
                 ]),
             ])
             ->recordUrl(null)
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('Belum ada catatan pinggir')
             ->emptyStateDescription('Mulai dengan membuat catatan pinggir baru.')

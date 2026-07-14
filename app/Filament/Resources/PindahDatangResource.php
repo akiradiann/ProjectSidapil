@@ -118,11 +118,34 @@ class PindahDatangResource extends Resource
                             ->options(PindahDatang::getAjuanOptions())
                             ->required()
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
-                        Forms\Components\TextInput::make('no_kk')
+                        Forms\Components\Select::make('no_kk')
                             ->label('No KK')
                             ->required()
-                            ->maxLength(255)
-                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\KartuKeluarga::where('no_kk', 'like', "%{$search}%")
+                                    ->orWhere('nama_kepala_keluarga', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->no_kk => $item->no_kk . ' - ' . $item->nama_kepala_keluarga])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\KartuKeluarga::where('no_kk', $state)->first();
+                                    if ($ref) {
+                                        $set('nama_kepala_keluarga', $ref->nama_kepala_keluarga);
+                                    }
+                                }
+                            })
+                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik nomor baru jika belum ada.'),
                         Forms\Components\TextInput::make('nik')
                             ->label('NIK')
                             ->required()

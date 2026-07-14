@@ -48,6 +48,9 @@ Route::middleware([
                 abort(404, 'File tidak ditemukan di storage');
             }
             
+            // Mark as downloaded
+            $serviceRequest->update(['is_downloaded' => true]);
+            
             $fileName = basename($filePath);
             
             return Storage::disk('local')->download(
@@ -64,6 +67,9 @@ Route::middleware([
         if (is_array($fileProduk) && !empty($fileProduk)) {
             $firstFile = $fileProduk[0];
             if (Storage::disk('local')->exists($firstFile)) {
+                // Mark as downloaded
+                $serviceRequest->update(['is_downloaded' => true]);
+                
                 $fileName = basename($firstFile);
                 return Storage::disk('local')->download(
                     $firstFile,
@@ -76,6 +82,9 @@ Route::middleware([
         } elseif (is_string($fileProduk)) {
             // Handle old format (single file as string)
             if (Storage::disk('local')->exists($fileProduk)) {
+                // Mark as downloaded
+                $serviceRequest->update(['is_downloaded' => true]);
+                
                 $fileName = basename($fileProduk);
                 return Storage::disk('local')->download(
                     $fileProduk,

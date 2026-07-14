@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use Filament\Support\RawJs;
 use App\Models\ServiceRequest;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
@@ -56,8 +57,9 @@ class PendaftaranPendudukChart extends ChartWidget
         $labels = [];
 
         foreach ($kategoriPendaftaranPenduduk as $id => $nama) {
-            $labels[] = $nama;
-            $data[] = $ajuanPerKategori[$id] ?? 0;
+            $total = $ajuanPerKategori[$id] ?? 0;
+            $labels[] = "{$nama} ({$total})";
+            $data[] = $total;
         }
 
         return [
@@ -79,16 +81,38 @@ class PendaftaranPendudukChart extends ChartWidget
         return 'pie';
     }
 
-    protected function getOptions(): array
+    protected function getOptions(): RawJs|array
     {
-        return [
-            'plugins' => [
-                'legend' => [
-                    'display' => true,
-                    'position' => 'bottom',
-                ],
-            ],
-        ];
+        return RawJs::make(<<<'JS'
+        {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var idx = label.indexOf(' (');
+                            if (idx !== -1) {
+                                label = label.substring(0, idx);
+                            }
+                            return label + ': ' + context.formattedValue;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: false
+                },
+                y: {
+                    display: false
+                }
+            }
+        }
+        JS);
     }
 
     public function getDescription(): ?string

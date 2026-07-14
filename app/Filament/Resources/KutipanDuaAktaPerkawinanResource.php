@@ -121,12 +121,36 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin)
                             ->native(true)
                             ->helperText('Tahun akan otomatis ditambahkan sesuai tahun berjalan'),
-                        Forms\Components\TextInput::make('no_akta')
+                        Forms\Components\Select::make('no_akta')
                             ->label('No Akta')
                             ->required()
-                            ->maxLength(255)
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\AktaPerkawinan::where('nomor', 'like', "%{$search}%")
+                                    ->orWhere('nama_mempelai_laki', 'like', "%{$search}%")
+                                    ->orWhere('nama_mempelai_perempuan', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama_mempelai_laki . ' & ' . $item->nama_mempelai_perempuan])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\AktaPerkawinan::where('nomor', $state)->first();
+                                    if ($ref) {
+                                        $set('nama_suami', $ref->nama_mempelai_laki);
+                                        $set('nama_istri', $ref->nama_mempelai_perempuan);
+                                    }
+                                }
+                            })
                             ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin)
-                            ->helperText('Nomor akta sebelumnya'),
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik nomor baru jika belum ada.'),
                         Forms\Components\TextInput::make('nama_suami')
                             ->label('Nama Suami')
                             ->required()
@@ -173,6 +197,24 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                     ])
                     ->columns(2),
 
+                                Forms\Components\Section::make('Checklist Persyaratan')
+                    ->description('Centang dokumen persyaratan yang sudah lengkap')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
+                            ->label('Persyaratan')
+                            ->options([
+                                    'Kartu Keluarga' => 'Kartu Keluarga',
+                                    'KTP-el Suami dan/atau Istri' => 'KTP-el Suami dan/atau Istri',
+                                    'Surat Kehilangan dari Kepolisian, jika hilang' => 'Surat Kehilangan dari Kepolisian, jika hilang',
+                                    'Fotokopi atau Foto Akta Lama, jika tersedia' => 'Fotokopi atau Foto Akta Lama, jika tersedia',
+                                    'Pasfoto Berdampingan Suami dan Istri, jika diperlukan' => 'Pasfoto Berdampingan Suami dan Istri, jika diperlukan',
+                            ])
+                            ->bulkToggleable()
+                            ->columns(1)
+                    ])
+                    ->visible(fn ($record) => ($isOperator || $isAdmin) && $record !== null)
+                    ->collapsible(),
+
                 Forms\Components\Section::make('Status & Produk')
                     ->description('Kelola status dan produk ajuan')
                     ->schema([
@@ -180,15 +222,32 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                             ->label('Jenis Produk')
                             ->options(JenisProduk::all()->pluck('nama_produk', 'id'))
                             ->searchable()
-                            ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket),
+                            ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                $statusId = $get('status_ajuan_id');
+                                if ($state == 1 && $statusId == StatusAjuan::SIAP_KIRIM) {
+                                    $set('status_ajuan_id', null);
+                                } elseif ($state == 2 && $statusId == StatusAjuan::SIAP_DIAMBIL) {
+                                    $set('status_ajuan_id', null);
+                                }
+                            }),
                         Forms\Components\Select::make('status_ajuan_id')
                             ->label('Status Ajuan')
-                            ->options(StatusAjuan::all()->pluck('nama_status', 'id'))
+                            ->options(function (Forms\Get $get) {
+                                $options = StatusAjuan::all()->pluck('nama_status', 'id');
+                                $produkId = $get('produk_id');
+                                if ($produkId == 1) { // DIAMBIL
+                                    $options->forget(StatusAjuan::SIAP_KIRIM);
+                                } elseif ($produkId == 2) { // FILE
+                                    $options->forget(StatusAjuan::SIAP_DIAMBIL);
+                                }
+                                return $options;
+                            })
                             ->required()
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->default(StatusAjuan::DIPROSES)
-                            ->reactive(),
+                            ->default(StatusAjuan::DIPROSES),
                         Forms\Components\FileUpload::make('file_produk')
                             ->label('File Produk (PDF)')
                             ->acceptedFileTypes(['application/pdf'])
@@ -237,7 +296,9 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->copyable()
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('no_akta')
                     ->label('No Akta')
                     ->searchable()
@@ -273,9 +334,10 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM (hijau)
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI (oren)
                         default => 'gray',
                     })
                     ->sortable(),
@@ -317,6 +379,7 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                 ]),
             ])
             ->recordUrl(null)
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('Belum ada kutipan dua akta perkawinan')
             ->emptyStateDescription('Mulai dengan membuat kutipan dua akta perkawinan baru.')

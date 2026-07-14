@@ -113,11 +113,34 @@ class KiaResource extends Resource
                             ->dehydrated()
                             ->default(fn() => 'Otomatis')
                             ->visible(fn($record) => $record !== null),
-                        Forms\Components\TextInput::make('nik')
+                        Forms\Components\Select::make('nik')
                             ->label('NIK')
                             ->required()
-                            ->maxLength(16)
-                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator),
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                $results = \App\Models\Kia::where('nik', 'like', "%{$search}%")
+                                    ->orWhere('nama', 'like', "%{$search}%")
+                                    ->limit(10)
+                                    ->get()
+                                    ->mapWithKeys(fn ($item) => [$item->nik => $item->nik . ' - ' . $item->nama])
+                                    ->toArray();
+                                if ($search && !isset($results[$search])) {
+                                    $results = [$search => $search] + $results;
+                                }
+                                return $results;
+                            })
+                            ->getOptionLabelUsing(fn ($value): string => $value)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $ref = \App\Models\Kia::where('nik', $state)->first();
+                                    if ($ref) {
+                                        $set('nama', $ref->nama);
+                                    }
+                                }
+                            })
+                            ->disabled(fn($record) => $record && !$isFrontOffice && !$isAdmin && !$isOperator)
+                            ->helperText('Ketik untuk mencari data lama, atau langsung ketik NIK baru jika belum ada.'),
                         Forms\Components\TextInput::make('nama')
                             ->label('Nama')
                             ->required()
@@ -147,23 +170,44 @@ class KiaResource extends Resource
                     ])
                     ->columns(2),
 
+                                Forms\Components\Section::make('Checklist Persyaratan')
+                    ->description('Centang dokumen persyaratan yang sudah lengkap')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
+                            ->label('Persyaratan')
+                            ->options([
+                                    'Kutipan Akta Kelahiran Anak' => 'Kutipan Akta Kelahiran Anak',
+                                    'Kartu Keluarga Orang Tua/Wali' => 'Kartu Keluarga Orang Tua/Wali',
+                                    'KTP-el Orang Tua/Wali' => 'KTP-el Orang Tua/Wali',
+                                    'Pasfoto Berwarna Anak, untuk anak usia 5 tahun ke atas' => 'Pasfoto Berwarna Anak, untuk anak usia 5 tahun ke atas',
+                            ])
+                            ->bulkToggleable()
+                            ->columns(1)
+                    ])
+                    ->visible(fn ($record) => ($isOperator || $isAdmin) && $record !== null)
+                    ->collapsible(),
+
                 Forms\Components\Section::make('Status & Produk')
                     ->description('Kelola status dan produk ajuan')
                     ->schema([
                         Forms\Components\Select::make('produk_id')
                             ->label('Jenis Produk')
-                            ->options(JenisProduk::all()->pluck('nama_produk', 'id'))
+                            ->options(JenisProduk::where('id', 1)->pluck('nama_produk', 'id'))
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->reactive(),
+                            ->default(1)
+                            ->live(),
                         Forms\Components\Select::make('status_ajuan_id')
                             ->label('Status Ajuan')
-                            ->options(StatusAjuan::all()->pluck('nama_status', 'id'))
+                            ->options(function () {
+                                $options = StatusAjuan::all()->pluck('nama_status', 'id');
+                                $options->forget(StatusAjuan::SIAP_KIRIM);
+                                return $options;
+                            })
                             ->required()
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->default(StatusAjuan::DIPROSES)
-                            ->reactive(),
+                            ->default(StatusAjuan::DIPROSES),
                         Forms\Components\FileUpload::make('file_produk')
                             ->label('File Produk (PDF)')
                             ->acceptedFileTypes(['application/pdf'])
@@ -212,7 +256,9 @@ class KiaResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->copyable()
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('nik')
                     ->label('NIK')
                     ->searchable()
@@ -239,9 +285,10 @@ class KiaResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM (hijau)
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI (oren)
                         default => 'gray',
                     })
                     ->sortable(),
@@ -299,6 +346,7 @@ class KiaResource extends Resource
                 ]),
             ])
             ->recordUrl(null)
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('Belum ada KIA')
             ->emptyStateDescription('Mulai dengan membuat KIA baru.')

@@ -100,9 +100,9 @@
             </div>
         </div>
 
-        {{-- Section 1: Laporan Layanan --}}
+        {{-- Section 1: Laporan Bulanan --}}
         <div
-            class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+            class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mb-6">
             <div class="fi-section-content-ctn rounded-xl">
                 <div class="fi-section-content p-6">
                     {{-- Header --}}
@@ -111,7 +111,7 @@
                             class="h-6 w-6 text-primary-600 dark:text-primary-400" />
                         <div>
                             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                                Laporan Layanan
+                                Laporan Bulanan
                             </h2>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
                                 Laporan bulanan berdasarkan kategori layanan
@@ -150,47 +150,119 @@
                                 </x-filament::input.select>
                             </x-filament::input.wrapper>
                             <x-filament::input.wrapper>
-                                <x-filament::input type="text" wire:model="tahun" label="Tahun" disabled />
+                                <x-filament::input.select wire:model.live="tahun" label="Tahun">
+                                    @for ($y = date('Y'); $y >= date('Y') - 10; $y--)
+                                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </x-filament::input.select>
                                 <x-slot name="hint">
-                                    Tahun otomatis menggunakan tahun berjalan
+                                    Pilih tahun laporan
+                                </x-slot>
+                            </x-filament::input.wrapper>
+                             <div class="flex items-end gap-2">
+                                 <x-filament::button type="submit" color="primary" icon="heroicon-o-magnifying-glass" wire:loading.attr="disabled" wire:target="tampilkanLayanan">
+                                     Tampilkan
+                                 </x-filament::button>
+                                 <x-filament::button type="button" color="success" icon="heroicon-o-arrow-down-tray"
+                                     wire:click="downloadExcelBulanan" wire:loading.attr="disabled" wire:target="downloadExcelBulanan" :disabled="!$showLayananTable || $tipeLaporan !== 'bulanan'">
+                                     Download Excel
+                                 </x-filament::button>
+                             </div>
+                        </div>
+                    </form>
+
+                    {{-- Results Area for Bulanan --}}
+                    @if ($showLayananTable && $tipeLaporan === 'bulanan')
+                        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+                            {{-- Info Box --}}
+                            <div
+                                class="mb-4 p-4 {{ $layananTotal > 0 ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700' }} rounded-lg">
+                                <p
+                                    class="text-sm {{ $layananTotal > 0 ? 'text-success-800 dark:text-success-200' : 'text-gray-800 dark:text-gray-200' }}">
+                                    <strong>Kategori:</strong> {{ $this->getKategoriNama() }} |
+                                    <strong>Periode:</strong> {{ $this->getBulanNama() }} {{ $tahun }} |
+                                    <strong>Total:</strong> {{ $this->formatAngka($layananTotal) }} data
+                                </p>
+                            </div>
+
+                            {{-- Table --}}
+                            {{ $this->table }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 1b: Laporan Tahunan --}}
+        <div
+            class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 mb-6">
+            <div class="fi-section-content-ctn rounded-xl">
+                <div class="fi-section-content p-6">
+                    {{-- Header --}}
+                    <div class="flex items-center gap-3 mb-6">
+                        <x-filament::icon icon="heroicon-o-calendar-days"
+                            class="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                Laporan Tahunan
+                            </h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Laporan tahunan berdasarkan kategori layanan
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Form Filter --}}
+                    <form wire:submit.prevent="tampilkanLayananTahunan" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <x-filament::input.wrapper>
+                                <x-filament::input.select wire:model="tahunan_kategori_layanan_id" label="Kategori Layanan"
+                                    placeholder="Pilih kategori layanan">
+                                    <option value="">Pilih kategori layanan</option>
+                                    @foreach(\App\Models\KategoriLayanan::all() as $kategori)
+                                        <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
+                                    @endforeach
+                                </x-filament::input.select>
+                            </x-filament::input.wrapper>
+                            <x-filament::input.wrapper>
+                                <x-filament::input.select wire:model.live="tahunan_tahun" label="Tahun">
+                                    @for ($y = date('Y'); $y >= date('Y') - 10; $y--)
+                                        <option value="{{ $y }}" {{ $tahunan_tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </x-filament::input.select>
+                                <x-slot name="hint">
+                                    Pilih tahun laporan
                                 </x-slot>
                             </x-filament::input.wrapper>
                             <div class="flex items-end gap-2">
-                                <x-filament::button type="submit" color="primary" icon="heroicon-o-magnifying-glass">
+                                <x-filament::button type="submit" color="primary" icon="heroicon-o-magnifying-glass" wire:loading.attr="disabled" wire:target="tampilkanLayananTahunan">
                                     Tampilkan
                                 </x-filament::button>
                                 <x-filament::button type="button" color="success" icon="heroicon-o-arrow-down-tray"
-                                    wire:click="downloadExcel" :disabled="!$showLayananTable">
+                                    wire:click="downloadExcelTahunan" wire:loading.attr="disabled" wire:target="downloadExcelTahunan" :disabled="!$showLayananTable || $tipeLaporan !== 'tahunan'">
                                     Download Excel
                                 </x-filament::button>
                             </div>
                         </div>
                     </form>
 
-                    {{-- Results Area --}}
-                    @if (!$showLayananTable)
-                        {{-- Placeholder --}}
-                        <div class="flex flex-col items-center justify-center py-12 text-center">
-                            <x-filament::icon icon="heroicon-o-document-text"
-                                class="h-16 w-16 text-gray-400 dark:text-gray-500 mb-4" />
-                            <p class="text-gray-600 dark:text-gray-400">
-                                Pilih kategori layanan dan bulan, lalu klik 'Tampilkan' untuk melihat data
-                            </p>
-                        </div>
-                    @else
-                        {{-- Info Box - Always show when showLayananTable is true --}}
-                        <div
-                            class="mb-4 p-4 {{ $layananTotal > 0 ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700' }} rounded-lg">
-                            <p
-                                class="text-sm {{ $layananTotal > 0 ? 'text-success-800 dark:text-success-200' : 'text-gray-800 dark:text-gray-200' }}">
-                                <strong>Kategori:</strong> {{ $this->getKategoriNama() }} |
-                                <strong>Periode:</strong> {{ $this->getBulanNama() }} {{ $tahun }} |
-                                <strong>Total:</strong> {{ $this->formatAngka($layananTotal) }} data
-                            </p>
-                        </div>
+                    {{-- Results Area for Tahunan --}}
+                    @if ($showLayananTable && $tipeLaporan === 'tahunan')
+                        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+                            {{-- Info Box --}}
+                            <div
+                                class="mb-4 p-4 {{ $layananTotal > 0 ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700' }} rounded-lg">
+                                <p
+                                    class="text-sm {{ $layananTotal > 0 ? 'text-success-800 dark:text-success-200' : 'text-gray-800 dark:text-gray-200' }}">
+                                    <strong>Kategori:</strong> {{ $this->getKategoriNama() }} |
+                                    <strong>Periode:</strong> {{ $this->getBulanNama() }} {{ $tahunan_tahun }} |
+                                    <strong>Total:</strong> {{ $this->formatAngka($layananTotal) }} data
+                                </p>
+                            </div>
 
-                        {{-- Table --}}
-                        {{ $this->table }}
+                            {{-- Table --}}
+                            {{ $this->table }}
+                        </div>
                     @endif
                 </div>
             </div>
