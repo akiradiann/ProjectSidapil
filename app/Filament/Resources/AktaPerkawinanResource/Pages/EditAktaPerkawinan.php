@@ -38,7 +38,7 @@ class EditAktaPerkawinan extends EditRecord
                 'status_ajuan_id' => $this->record->status_ajuan_id,
                 'file_produk' => $this->record->file_produk,
                 'catatan' => $this->record->catatan,
-                'checklist_persyaratan' => $this->record->serviceRequest ? $this->record->serviceRequest->checklist_persyaratan : null,
+                'checklist_persyaratan' => $this->data['serviceRequest']['checklist_persyaratan'] ?? null,
             ];
 
             if (auth()->check() && auth()->user()->isOperator()) {
