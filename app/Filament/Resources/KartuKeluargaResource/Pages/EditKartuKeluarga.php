@@ -8,6 +8,12 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditKartuKeluarga extends EditRecord
 {
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['checklist_persyaratan'] = $this->record->serviceRequest?->checklist_persyaratan ?? [];
+        return $data;
+    }
+
     protected static string $resource = KartuKeluargaResource::class;
 
     protected function mutateFormDataBeforeSave(array $data): array
@@ -36,7 +42,7 @@ class EditKartuKeluarga extends EditRecord
                 'jenis_produk_id' => $this->record->produk_id,
                 'status_ajuan_id' => $this->record->status_ajuan_id,
                 'catatan' => $this->record->catatan,
-                'checklist_persyaratan' => $this->data['serviceRequest']['checklist_persyaratan'] ?? null,
+                'checklist_persyaratan' => $this->data['checklist_persyaratan'] ?? null,
             ];
 
             // If operator is updating, set operator_id

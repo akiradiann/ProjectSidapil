@@ -267,7 +267,7 @@ class KutipanDuaAktaKelahiranResource extends Resource
                                 Forms\Components\Section::make('Checklist Persyaratan')
                     ->description('Centang dokumen persyaratan yang sudah lengkap')
                     ->schema([
-                        Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
+                        Forms\Components\CheckboxList::make('checklist_persyaratan')
                             ->label('Persyaratan')
                             ->options([
                                     'Kartu Keluarga' => 'Kartu Keluarga',

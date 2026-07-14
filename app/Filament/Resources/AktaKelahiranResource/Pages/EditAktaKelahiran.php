@@ -10,6 +10,13 @@ class EditAktaKelahiran extends EditRecord
 {
     protected static string $resource = AktaKelahiranResource::class;
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        // Muat data checklist dari serviceRequest ke form
+        $data['checklist_persyaratan'] = $this->record->serviceRequest?->checklist_persyaratan ?? [];
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $oldStatus = $this->record->status_ajuan_id;
@@ -39,7 +46,8 @@ class EditAktaKelahiran extends EditRecord
                 'status_ajuan_id' => $this->record->status_ajuan_id,
                 'file_produk' => $this->record->file_produk,
                 'catatan' => $this->record->catatan,
-                'checklist_persyaratan' => $this->data['serviceRequest']['checklist_persyaratan'] ?? null,
+                // Ambil state langsung dari $this->data['checklist_persyaratan']
+                'checklist_persyaratan' => $this->data['checklist_persyaratan'] ?? null,
             ];
 
             // If operator is updating, set operator_id
@@ -63,4 +71,3 @@ class EditAktaKelahiran extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 }
-
