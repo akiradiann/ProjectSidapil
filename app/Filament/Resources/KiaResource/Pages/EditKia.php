@@ -36,6 +36,7 @@ class EditKia extends EditRecord
                 'jenis_produk_id' => $this->record->produk_id,
                 'status_ajuan_id' => $this->record->status_ajuan_id,
                 'catatan' => $this->record->catatan,
+                'checklist_persyaratan' => $this->record->serviceRequest ? $this->record->serviceRequest->checklist_persyaratan : null,
             ];
 
             // If operator is updating, set operator_id

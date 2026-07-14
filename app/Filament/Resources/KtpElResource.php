@@ -104,6 +104,31 @@ class KtpElResource extends Resource
 
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('revisi_banner')
+                    ->columnSpanFull()
+                    ->label('') // Menghilangkan label revisi banner
+                    ->content(fn ($record) => new \Illuminate\Support\HtmlString('
+                        <div style="background-color: #fffbeb; border-left: 6px solid #d97706; padding: 1.25rem; border-radius: 0.375rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: flex-start;">
+                                <div style="flex-shrink: 0; padding-top: 0.125rem;">
+                                    <svg style="height: 1.5rem; width: 1.5rem; color: #d97706;" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div style="margin-left: 1rem;">
+                                    <h3 style="font-size: 1.125rem; font-weight: 700; color: #78350f; text-transform: uppercase; letter-spacing: 0.025em; margin: 0;">
+                                        AJUAN REVISI
+                                    </h3>
+                                    <p style="font-size: 0.875rem; font-weight: 500; color: #92400e; margin-top: 0.25rem; margin-bottom: 0;">
+                                        Ajuan ini adalah perbaikan dokumen dari ajuan yang sebelumnya DITOLAK.
+                                    </p>
+                                    ' . ($record->catatan ? '<div style="margin-top: 0.75rem; padding: 0.75rem; background-color: #fff9e6; border: 1px solid #fef3c7; border-radius: 0.375rem;"><p style="font-size: 0.875rem; color: #92400e; margin: 0;"><strong>Catatan Penolakan Sebelumnya:</strong> ' . e($record->catatan) . '</p></div>' : '') . '
+                                </div>
+                            </div>
+                        </div>
+                    '))
+                    ->visible(fn ($record) => $record !== null && $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI),
+
                 Forms\Components\Section::make('Informasi KTP EL')
                     ->description('Data KTP EL')
                     ->schema([
@@ -170,7 +195,7 @@ class KtpElResource extends Resource
                     ])
                     ->columns(2),
 
-                                Forms\Components\Section::make('Checklist Persyaratan')
+                Forms\Components\Section::make('Checklist Persyaratan')
                     ->description('Centang dokumen persyaratan yang sudah lengkap')
                     ->schema([
                         Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
@@ -222,11 +247,6 @@ class KtpElResource extends Resource
                             ->multiple()
                             ->maxFiles(4)
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->required(
-                                fn(Forms\Get $get) =>
-                                $get('status_ajuan_id') == StatusAjuan::SIAP_KIRIM &&
-                                $get('produk_id') == 2
-                            )
                             ->visible(
                                 fn(Forms\Get $get, $record) =>
                                 $get('produk_id') == 2 || // FILE
@@ -278,7 +298,7 @@ class KtpElResource extends Resource
                         2 => 'success', // FILE
                         1 => 'warning', // DIAMBIL
                         3 => 'info', // POS
-                        5 => 'primary', // ADEK MANJA
+                        5 => 'primary',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('statusAjuan.nama_status')
@@ -287,10 +307,10 @@ class KtpElResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'success', // SIAP KIRIM (hijau)
+                        3 => 'success', // SIAP KIRIM
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
-                        6 => 'warning', // REVISI (oren)
+                        6 => 'warning', // REVISI
                         default => 'gray',
                     })
                     ->sortable(),

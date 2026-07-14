@@ -104,6 +104,31 @@ class PindahDatangResource extends Resource
 
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('revisi_banner')
+                    ->columnSpanFull()
+                    ->label('') // Menghilangkan label revisi banner
+                    ->content(fn ($record) => new \Illuminate\Support\HtmlString('
+                        <div style="background-color: #fffbeb; border-left: 6px solid #d97706; padding: 1.25rem; border-radius: 0.375rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: flex-start;">
+                                <div style="flex-shrink: 0; padding-top: 0.125rem;">
+                                    <svg style="height: 1.5rem; width: 1.5rem; color: #d97706;" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div style="margin-left: 1rem;">
+                                    <h3 style="font-size: 1.125rem; font-weight: 700; color: #78350f; text-transform: uppercase; letter-spacing: 0.025em; margin: 0;">
+                                        AJUAN REVISI
+                                    </h3>
+                                    <p style="font-size: 0.875rem; font-weight: 500; color: #92400e; margin-top: 0.25rem; margin-bottom: 0;">
+                                        Ajuan ini adalah perbaikan dokumen dari ajuan yang sebelumnya DITOLAK.
+                                    </p>
+                                    ' . ($record->catatan ? '<div style="margin-top: 0.75rem; padding: 0.75rem; background-color: #fff9e6; border: 1px solid #fef3c7; border-radius: 0.375rem;"><p style="font-size: 0.875rem; color: #92400e; margin: 0;"><strong>Catatan Penolakan Sebelumnya:</strong> ' . e($record->catatan) . '</p></div>' : '') . '
+                                </div>
+                            </div>
+                        </div>
+                    '))
+                    ->visible(fn ($record) => $record !== null && $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI),
+
                 Forms\Components\Section::make('Informasi Pindah Datang')
                     ->description('Data pindah datang')
                     ->schema([
@@ -185,23 +210,45 @@ class PindahDatangResource extends Resource
                     ])
                     ->columns(2),
 
+                Forms\Components\Section::make('Checklist Persyaratan')
+                    ->description('Centang dokumen persyaratan yang sudah lengkap')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('serviceRequest.checklist_persyaratan')
+                            ->label('Persyaratan')
+                            ->options([
+                                'Kartu Keluarga' => 'Kartu Keluarga',
+                                'KTP-el Kepala Keluarga/Pemohon' => 'KTP-el Kepala Keluarga/Pemohon',
+                                'Surat Keterangan Pindah dari Daerah Asal' => 'Surat Keterangan Pindah dari Daerah Asal',
+                                'Surat Pengantar RT/RW' => 'Surat Pengantar RT/RW',
+                                'Pas Foto 3x4 (2 lembar)' => 'Pas Foto 3x4 (2 lembar)',
+                            ])
+                            ->bulkToggleable()
+                            ->columns(1)
+                    ])
+                    ->visible(fn ($record) => ($isOperator || $isAdmin) && $record !== null)
+                    ->collapsible(),
+
                 Forms\Components\Section::make('Status & Produk')
                     ->description('Kelola status dan produk ajuan')
                     ->schema([
                         Forms\Components\Select::make('produk_id')
                             ->label('Jenis Produk')
-                            ->options(JenisProduk::all()->pluck('nama_produk', 'id'))
+                            ->options(JenisProduk::where('id', 1)->pluck('nama_produk', 'id'))
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->reactive(),
+                            ->default(1)
+                            ->live(),
                         Forms\Components\Select::make('status_ajuan_id')
                             ->label('Status Ajuan')
-                            ->options(StatusAjuan::all()->pluck('nama_status', 'id'))
+                            ->options(function () {
+                                $options = StatusAjuan::all()->pluck('nama_status', 'id');
+                                $options->forget(StatusAjuan::SIAP_KIRIM);
+                                return $options;
+                            })
                             ->required()
                             ->searchable()
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->default(StatusAjuan::DIPROSES)
-                            ->reactive(),
+                            ->default(StatusAjuan::DIPROSES),
                         Forms\Components\FileUpload::make('file_produk')
                             ->label('File Produk (PDF)')
                             ->acceptedFileTypes(['application/pdf'])
@@ -214,17 +261,12 @@ class PindahDatangResource extends Resource
                             ->multiple()
                             ->maxFiles(4)
                             ->disabled(fn($record) => $record && !$isOperator && !$isAdmin && !$isLoket)
-                            ->required(
-                                fn(Forms\Get $get) =>
-                                $get('status_ajuan_id') == StatusAjuan::SIAP_KIRIM &&
-                                $get('produk_id') == 2
-                            )
                             ->visible(
                                 fn(Forms\Get $get, $record) =>
                                 $get('produk_id') == 2 || // FILE
                                 ($record && $record->produk_id == 2)
                             )
-                            ->helperText('Wajib diupload jika produk FILE dan status SIAP KIRIM. Maksimal 4 file'),
+                            ->helperText('Wajib diupload jika produk FILE. Maksimal 4 file'),
                         Forms\Components\Textarea::make('catatan')
                             ->label('Catatan')
                             ->rows(3)
@@ -250,7 +292,9 @@ class PindahDatangResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->copyable(),
+                    ->copyable()
+                    ->html()
+                    ->formatStateUsing(fn ($record, $state) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? new \Illuminate\Support\HtmlString('<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 shrink-0" style="background-color: #f59e0b; display: inline-block;"></span>' . e($state) . '</span>') : e($state)),
                 Tables\Columns\TextColumn::make('ajuan')
                     ->label('Ajuan')
                     ->badge()
@@ -281,9 +325,10 @@ class PindahDatangResource extends Resource
                     ->color(fn($record) => match ($record->status_ajuan_id) {
                         1 => 'info', // DIPROSES
                         2 => 'danger', // DITOLAK
-                        3 => 'warning', // SIAP KIRIM
+                        3 => 'success', // SIAP KIRIM
                         4 => 'success', // SIAP DIAMBIL
                         5 => 'gray', // SELESAI
+                        6 => 'warning', // REVISI
                         default => 'gray',
                     })
                     ->sortable(),
@@ -345,6 +390,7 @@ class PindahDatangResource extends Resource
                 ]),
             ])
             ->recordUrl(null)
+            ->recordClasses(fn ($record) => $record->status_ajuan_id == \App\Models\StatusAjuan::REVISI ? 'border-s-[6px] border-amber-500 bg-amber-50/20 dark:bg-amber-950/5' : null)
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('Belum ada pindah datang')
             ->emptyStateDescription('Mulai dengan membuat pindah datang baru.')

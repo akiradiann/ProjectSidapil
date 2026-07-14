@@ -787,6 +787,7 @@ class PengirimanResource extends Resource
                     ->label('WhatsApp')
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('success')
+                    ->visible(fn() => auth()->user() && (auth()->user()->isAdmin() || auth()->user()->isCustomerService()))
                     ->url(function ($record) {
                         $phone = $record->no_hp;
                         if (!$phone) {
