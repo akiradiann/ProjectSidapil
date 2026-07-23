@@ -143,8 +143,8 @@ class KtpElResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\KtpEl::where('nik', 'like', "%{$search}%")
-                                    ->orWhere('nama', 'like', "%{$search}%")
+                                $results = \App\Models\KtpEl::where('nik', 'like', "{$search}%")
+                                    ->orWhere('nama', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nik => $item->nik . ' - ' . $item->nama])

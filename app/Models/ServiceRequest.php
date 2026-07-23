@@ -317,5 +317,38 @@ class ServiceRequest extends Model
     {
         return $this->status_ajuan_id == StatusAjuan::SELESAI;
     }
+
+    /**
+     * Hitung durasi penyelesaian dari created_at hingga selesai_at
+     */
+    public function getDurasiPenyelesaianFormattedAttribute(): string
+    {
+        if (!$this->selesai_at || !$this->created_at) {
+            return '-';
+        }
+
+        $start = \Carbon\Carbon::parse($this->created_at);
+        $end = \Carbon\Carbon::parse($this->selesai_at);
+
+        if ($end->lessThan($start)) {
+            return '-';
+        }
+
+        $diffMinutes = $start->diffInMinutes($end);
+        if ($diffMinutes < 1) {
+            return '< 1 Menit';
+        }
+
+        $days = intdiv($diffMinutes, 1440);
+        $hours = intdiv($diffMinutes % 1440, 60);
+        $minutes = $diffMinutes % 60;
+
+        $parts = [];
+        if ($days > 0) $parts[] = "{$days} Hari";
+        if ($hours > 0) $parts[] = "{$hours} Jam";
+        if ($minutes > 0) $parts[] = "{$minutes} Menit";
+
+        return implode(' ', $parts);
+    }
 }
 

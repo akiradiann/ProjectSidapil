@@ -17,6 +17,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class LayananExport implements FromCollection, WithHeadings, WithStyles, WithColumnWidths, WithTitle, WithMapping, WithEvents
 {
@@ -605,6 +607,39 @@ class LayananExport implements FromCollection, WithHeadings, WithStyles, WithCol
                 $sheet->getRowDimension(1)->setRowHeight(25);
                 $sheet->getRowDimension(2)->setRowHeight(20);
                 $sheet->getRowDimension(4)->setRowHeight(20);
+
+                // Format NIK, No KK, No HP, Nomor Akta, dll sebagai TEXT murni agar tidak berubah menjadi Scientific Notation (E+)
+                $lastDataRow = 4 + $this->total;
+                if ($this->total > 0) {
+                    foreach ($this->headings as $index => $heading) {
+                        $colLetter = Coordinate::stringFromColumnIndex($index + 1);
+                        $headingUpper = strtoupper($heading);
+
+                        if (
+                            str_contains($headingUpper, 'NIK') || 
+                            str_contains($headingUpper, 'KK') || 
+                            str_contains($headingUpper, 'HP') || 
+                            str_contains($headingUpper, 'AKTA') || 
+                            str_contains($headingUpper, 'KUTIPAN') || 
+                            str_contains($headingUpper, 'NOMOR')
+                        ) {
+                            $sheet->getStyle("{$colLetter}5:{$colLetter}{$lastDataRow}")
+                                ->getNumberFormat()
+                                ->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+                            for ($row = 5; $row <= $lastDataRow; $row++) {
+                                $cellValue = $sheet->getCell("{$colLetter}{$row}")->getValue();
+                                if ($cellValue !== null && $cellValue !== '') {
+                                    $sheet->setCellValueExplicit(
+                                        "{$colLetter}{$row}",
+                                        (string) $cellValue,
+                                        DataType::TYPE_STRING
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
             },
         ];
     }

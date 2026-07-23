@@ -126,9 +126,9 @@ class KutipanDuaAktaPerkawinanResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\AktaPerkawinan::where('nomor', 'like', "%{$search}%")
-                                    ->orWhere('nama_mempelai_laki', 'like', "%{$search}%")
-                                    ->orWhere('nama_mempelai_perempuan', 'like', "%{$search}%")
+                                $results = \App\Models\AktaPerkawinan::where('nomor', 'like', "{$search}%")
+                                    ->orWhere('nama_mempelai_laki', 'like', "{$search}%")
+                                    ->orWhere('nama_mempelai_perempuan', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama_mempelai_laki . ' & ' . $item->nama_mempelai_perempuan])

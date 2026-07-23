@@ -126,9 +126,9 @@ class KutipanDuaAktaPerceraianResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\AktaPerceraian::where('nomor', 'like', "%{$search}%")
-                                    ->orWhere('nama_suami', 'like', "%{$search}%")
-                                    ->orWhere('nama_istri', 'like', "%{$search}%")
+                                $results = \App\Models\AktaPerceraian::where('nomor', 'like', "{$search}%")
+                                    ->orWhere('nama_suami', 'like', "{$search}%")
+                                    ->orWhere('nama_istri', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama_suami . ' & ' . $item->nama_istri])

@@ -69,7 +69,17 @@ class HandledRequestsRelationManager extends RelationManager
                     }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tgl Dibuat')
-                    ->dateTime('d M Y H:i'),
+                    ->dateTime('d M Y H:i')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('selesai_at')
+                    ->label('Waktu Selesai')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('durasi_penyelesaian_formatted')
+                    ->label('Durasi Penyelesaian')
+                    ->badge()
+                    ->color(fn($state) => $state === '-' ? 'gray' : 'success'),
             ])
             ->filters([
                 //

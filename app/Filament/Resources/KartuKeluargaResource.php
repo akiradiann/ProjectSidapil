@@ -143,8 +143,8 @@ class KartuKeluargaResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\KartuKeluarga::where('no_kk', 'like', "%{$search}%")
-                                    ->orWhere('nama_kepala_keluarga', 'like', "%{$search}%")
+                                $results = \App\Models\KartuKeluarga::where('no_kk', 'like', "{$search}%")
+                                    ->orWhere('nama_kepala_keluarga', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->no_kk => $item->no_kk . ' - ' . $item->nama_kepala_keluarga])

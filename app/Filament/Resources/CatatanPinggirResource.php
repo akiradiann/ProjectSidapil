@@ -137,8 +137,8 @@ class CatatanPinggirResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
-                                    ->orWhere('nama', 'like', "%{$search}%")
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "{$search}%")
+                                    ->orWhere('nama', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
@@ -200,8 +200,8 @@ class CatatanPinggirResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
-                                    ->orWhere('nama', 'like', "%{$search}%")
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "{$search}%")
+                                    ->orWhere('nama', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
@@ -265,8 +265,8 @@ class CatatanPinggirResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
-                                    ->orWhere('nama', 'like', "%{$search}%")
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "{$search}%")
+                                    ->orWhere('nama', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
@@ -340,8 +340,8 @@ class CatatanPinggirResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search) {
-                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "%{$search}%")
-                                    ->orWhere('nama', 'like', "%{$search}%")
+                                $results = \App\Models\AktaKelahiran::where('nomor', 'like', "{$search}%")
+                                    ->orWhere('nama', 'like', "{$search}%")
                                     ->limit(10)
                                     ->get()
                                     ->mapWithKeys(fn ($item) => [$item->nomor => $item->nomor . ' - ' . $item->nama])
@@ -657,11 +657,11 @@ class CatatanPinggirResource extends Resource
                     })
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where(function (Builder $query) use ($search) {
-                            $query->where('nama_sesudah', 'like', "%{$search}%")
-                                ->orWhere('nama_anak_pgsh', 'like', "%{$search}%")
-                                ->orWhere('nama_anak_pgn', 'like', "%{$search}%")
-                                ->orWhere('nama_anak_pgk', 'like', "%{$search}%")
-                                ->orWhere('nama_pkoi', 'like', "%{$search}%");
+                            $query->where('nama_sesudah', 'like', "{$search}%")
+                                ->orWhere('nama_anak_pgsh', 'like', "{$search}%")
+                                ->orWhere('nama_anak_pgn', 'like', "{$search}%")
+                                ->orWhere('nama_anak_pgk', 'like', "{$search}%")
+                                ->orWhere('nama_pkoi', 'like', "{$search}%");
                         });
                     })
                     ->sortable(false)
