@@ -7,6 +7,20 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use App\Models\StatusAjuan;
 use App\Models\User;
+use App\Filament\Resources\AktaKelahiranResource;
+use App\Filament\Resources\AktaKematianResource;
+use App\Filament\Resources\AktaPerkawinanResource;
+use App\Filament\Resources\AktaPerceraianResource;
+use App\Filament\Resources\KartuKeluargaResource;
+use App\Filament\Resources\KtpElResource;
+use App\Filament\Resources\KiaResource;
+use App\Filament\Resources\PindahDatangResource;
+use App\Filament\Resources\KutipanDuaAktaKelahiranResource;
+use App\Filament\Resources\KutipanDuaAktaKematianResource;
+use App\Filament\Resources\KutipanDuaAktaPerkawinanResource;
+use App\Filament\Resources\KutipanDuaAktaPerceraianResource;
+use App\Filament\Resources\CatatanPinggirResource;
+use App\Filament\Resources\SuratResource;
 
 class HandledRequestsRelationManager extends RelationManager
 {
@@ -86,8 +100,73 @@ class HandledRequestsRelationManager extends RelationManager
             ])
             ->headerActions([])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->url(fn ($record) => route('filament.admin.resources.service-requests.view', ['record' => $record->id]))
+                Tables\Actions\Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-m-eye')
+                    ->color('gray')
+                    ->url(function ($record) {
+                        $kategori = strtoupper($record->kategoriLayanan?->nama_kategori ?? '');
+
+                        if (str_contains($kategori, 'KELAHIRAN') && !str_contains($kategori, 'KUTIPAN')) {
+                            if ($record->aktaKelahiran) {
+                                return AktaKelahiranResource::getUrl('edit', ['record' => $record->aktaKelahiran->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KEMATIAN') && !str_contains($kategori, 'KUTIPAN')) {
+                            if ($record->aktaKematian) {
+                                return AktaKematianResource::getUrl('edit', ['record' => $record->aktaKematian->id]);
+                            }
+                        } elseif (str_contains($kategori, 'PERKAWINAN') && !str_contains($kategori, 'KUTIPAN')) {
+                            if ($record->aktaPerkawinan) {
+                                return AktaPerkawinanResource::getUrl('edit', ['record' => $record->aktaPerkawinan->id]);
+                            }
+                        } elseif (str_contains($kategori, 'PERCERAIAN') && !str_contains($kategori, 'KUTIPAN')) {
+                            if ($record->aktaPerceraian) {
+                                return AktaPerceraianResource::getUrl('edit', ['record' => $record->aktaPerceraian->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KARTU KELUARGA')) {
+                            if ($record->kartuKeluarga) {
+                                return KartuKeluargaResource::getUrl('edit', ['record' => $record->kartuKeluarga->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KTP')) {
+                            if ($record->ktpEl) {
+                                return KtpElResource::getUrl('edit', ['record' => $record->ktpEl->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KIA')) {
+                            if ($record->kia) {
+                                return KiaResource::getUrl('edit', ['record' => $record->kia->id]);
+                            }
+                        } elseif (str_contains($kategori, 'PINDAH DATANG')) {
+                            if ($record->pindahDatang) {
+                                return PindahDatangResource::getUrl('edit', ['record' => $record->pindahDatang->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KUTIPAN DUA KELAHIRAN')) {
+                            if ($record->kutipanDuaAktaKelahiran) {
+                                return KutipanDuaAktaKelahiranResource::getUrl('edit', ['record' => $record->kutipanDuaAktaKelahiran->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KUTIPAN DUA KEMATIAN')) {
+                            if ($record->kutipanDuaAktaKematian) {
+                                return KutipanDuaAktaKematianResource::getUrl('edit', ['record' => $record->kutipanDuaAktaKematian->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KUTIPAN DUA PERKAWINAN')) {
+                            if ($record->kutipanDuaAktaPerkawinan) {
+                                return KutipanDuaAktaPerkawinanResource::getUrl('edit', ['record' => $record->kutipanDuaAktaPerkawinan->id]);
+                            }
+                        } elseif (str_contains($kategori, 'KUTIPAN DUA PERCERAIAN')) {
+                            if ($record->kutipanDuaAktaPerceraian) {
+                                return KutipanDuaAktaPerceraianResource::getUrl('edit', ['record' => $record->kutipanDuaAktaPerceraian->id]);
+                            }
+                        } elseif (str_contains($kategori, 'CATATAN PINGGIR')) {
+                            if ($record->catatanPinggir) {
+                                return CatatanPinggirResource::getUrl('edit', ['record' => $record->catatanPinggir->id]);
+                            }
+                        } elseif (str_contains($kategori, 'SURAT')) {
+                            if ($record->surat) {
+                                return SuratResource::getUrl('edit', ['record' => $record->surat->id]);
+                            }
+                        }
+
+                        return '#';
+                    })
                     ->openUrlInNewTab(),
             ])
             ->bulkActions([]);
