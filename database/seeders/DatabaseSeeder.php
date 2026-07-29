@@ -17,45 +17,55 @@ class DatabaseSeeder extends Seeder
     {
 
         // Create default admin user
-        User::create([
-            'name' => 'Administrator',
-            'email' => 'admin@sidapil.local',
-            'phone' => '08123456789',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_ADMIN,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@sidapil.local'],
+            [
+                'name' => 'Administrator',
+                'phone' => '08123456789',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_ADMIN,
+            ]
+        );
 
         // Create sample users for each role
-        User::create([
-            'name' => 'Front Office User',
-            'email' => 'fo@sidapil.local',
-            'phone' => '08123456780',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_FRONT_OFFICE,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'fo@sidapil.local'],
+            [
+                'name' => 'Front Office User',
+                'phone' => '08123456780',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_FRONT_OFFICE,
+            ]
+        );
 
-        User::create([
-            'name' => 'Operator User',
-            'email' => 'operator@sidapil.local',
-            'phone' => '08123456781',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_OPERATOR,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'operator@sidapil.local'],
+            [
+                'name' => 'Operator User',
+                'phone' => '08123456781',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_OPERATOR,
+            ]
+        );
 
-        User::create([
-            'name' => 'Customer Service User',
-            'email' => 'cs@sidapil.local',
-            'phone' => '08123456782',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_CUSTOMER_SERVICE,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'cs@sidapil.local'],
+            [
+                'name' => 'Customer Service User',
+                'phone' => '08123456782',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_CUSTOMER_SERVICE,
+            ]
+        );
 
-        User::create([
-            'name' => 'Petugas Loket',
-            'email' => 'loket@sidapil.local',
-            'phone' => '08123456783',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_LOKET,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'loket@sidapil.local'],
+            [
+                'name' => 'Petugas Loket',
+                'phone' => '08123456783',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_LOKET,
+            ]
+        );
     }
 }
